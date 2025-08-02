@@ -1,67 +1,59 @@
 import streamlit as st
 import pandas as pd
-import matplotlib.pyplot as plt
 import numpy as np
+import matplotlib.pyplot as plt
 import networkx as nx
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics.pairwise import cosine_similarity
 from matplotlib.colors import Normalize
 from matplotlib import cm
-from networkx.drawing.nx_agraph import graphviz_layout
 
-# === CONFIG ===
-st.set_page_config(page_title="GoWhere - Brain Drain", layout="wide")
+# === Carica il dataset ===
+df = pd.read_csv("dataset_final.csv")  # assicurati che il file esista nel root
+
+st.set_page_config(page_title="Brain Drain Analyzer", page_icon="🌍", layout="wide")
+
 st.title("🌍 GoWhere - Brain Drain Analyzer")
 
-# === LOAD DATA ===
-df = pd.read_csv("dataset_final.csv")
-
-# === INPUT UTENTE COMPLETO ===
-st.sidebar.header("📥 Profilo Utente")
-sex = st.sidebar.selectbox("Sesso", ["Male", "Female"])
-origin_country = st.sidebar.selectbox("Paese di origine", sorted(df["country_of_birth"].unique()))
-
+# === INDICI DISPONIBILI ===
 indici_disponibili = [
     "Education", "Jobs", "Income", "Safety", "Health", "Environment",
     "Civic engagement", "Accessiblity to services", "Housing",
     "Community", "Life satisfaction", "PR rating", "CL rating"
 ]
 
-st.sidebar.subheader("❌ Cosa NON ti piace del tuo paese")
+# === Selezione utente ===
+st.subheader("1️⃣ Il tuo profilo")
+
+sex = st.selectbox("Sesso", ["Male", "Female"])
+origin = st.selectbox("Paese di origine", sorted(df["country_of_birth"].unique()))
+
+st.subheader("2️⃣ Cosa vuoi migliorare nel tuo Paese?")
 indici_da_migliorare = {}
-for i in indici_disponibili:
-    val = st.sidebar.slider(f"{i} ❌", 0.0, 10.0, 0.0, step=0.5)
-    if val > 0:
-        indici_da_migliorare[i] = val
+for ind in indici_disponibili:
+    peso = st.slider(f"{ind}", 0.0, 10.0, 3.0, 0.5, key=f"neg_{ind}")
+    if peso > 0:
+        indici_da_migliorare[ind] = peso
 
-st.sidebar.subheader("✅ Cosa DESIDERI nel nuovo paese")
+st.subheader("3️⃣ Cosa desideri trovare nel nuovo Paese?")
 indici_desiderati = {}
-for i in indici_disponibili:
-    val = st.sidebar.slider(f"{i} ✅", 0.0, 10.0, 0.0, step=0.5)
-    if val > 0:
-        indici_desiderati[i] = val
+for ind in indici_disponibili:
+    peso = st.slider(f"{ind}", 0.0, 10.0, 3.0, 0.5, key=f"pos_{ind}")
+    if peso > 0:
+        indici_desiderati[ind] = peso
 
-user_input = {
-    "sex": sex,
-    "origin_country": origin_country,
-    "indici_da_migliorare": indici_da_migliorare,
-    "indici_desiderati": indici_desiderati
-}
+st.markdown("---")
 
-# === FUNZIONE DI RACCOMANDAZIONE ===
-def consiglia_paesi(df, user_input, top_n=5):
-    orig = user_input["origin_country"]
-    sex = user_input["sex"]
-    migliora = user_input.get("indici_da_migliorare", {})
-    desidera = user_input.get("indici_desiderati", {})
+# === Funzione raccomandazione ===
+def consiglia_paesi(df, sex, origin, migliora, desidera, top_n=5):
+    df_user = df[(df["country_of_birth"] == origin) & (df["sex"] == sex)].copy()
 
-    df_user = df[(df["country_of_birth"] == orig) & (df["sex"] == sex)].copy()
-
-    def calcola_punteggio(r):
+    def calcola_score(row):
         score = 0
         motivi = []
+
         for ind, peso in migliora.items():
-            delta = r[f"dest_{ind}"] - r[f"origin_{ind}"]
+            delta = row[f"dest_{ind}"] - row[f"origin_{ind}"]
             score += delta * peso
             if delta > 0:
                 motivi.append(f"{ind} ↑ (+{delta:.2f})")
@@ -69,8 +61,8 @@ def consiglia_paesi(df, user_input, top_n=5):
                 motivi.append(f"{ind} ↓ ({delta:.2f})")
 
         for ind, peso in desidera.items():
-            val = r[f"dest_{ind}"]
-            delta = r[f"dest_{ind}"] - r[f"origin_{ind}"]
+            val = row[f"dest_{ind}"]
+            delta = val - row[f"origin_{ind}"]
             score += val * peso
             if delta > 0:
                 motivi.append(f"{ind} ↑ (+{delta:.2f})")
@@ -81,23 +73,17 @@ def consiglia_paesi(df, user_input, top_n=5):
 
         return pd.Series({"score": score, "motivi": ", ".join(motivi)})
 
-    df_user[["score", "motivi"]] = df_user.apply(calcola_punteggio, axis=1)
-
-    if df_user["score"].nunique() > 1:
-        scaler = MinMaxScaler()
-        df_user["score_norm"] = scaler.fit_transform(df_user[["score"]])
-    else:
-        df_user["score_norm"] = 1.0
+    df_user[["score", "motivi"]] = df_user.apply(calcola_score, axis=1)
+    df_user["score_norm"] = MinMaxScaler().fit_transform(df_user[["score"]]) if df_user["score"].nunique() > 1 else 1.0
 
     if desidera:
-        profilo = np.array([peso for peso in desidera.values()]).reshape(1, -1)
-        indici_sim = [f"dest_{k}" for k in desidera.keys()]
-        matrice_dest = df_user[indici_sim].values
-        similarità = cosine_similarity(profilo, matrice_dest)[0]
+        profile = np.array([peso for peso in desidera.values()]).reshape(1, -1)
+        columns = [f"dest_{k}" for k in desidera.keys()]
+        similarity = cosine_similarity(profile, df_user[columns])[0]
     else:
-        similarità = np.zeros(len(df_user))
+        similarity = np.zeros(len(df_user))
 
-    df_user["similarity"] = similarità
+    df_user["similarity"] = similarity
     df_user["score_finale"] = 0.5 * df_user["score_norm"] + 0.5 * df_user["similarity"]
 
     ranking = (
@@ -113,53 +99,72 @@ def consiglia_paesi(df, user_input, top_n=5):
 
     return ranking
 
-# === OUTPUT ===
+# === Bottone per generare risultati ===
 if st.button("🔍 Scopri i paesi migliori"):
-    risultato = consiglia_paesi(df, user_input, top_n=5)
-    st.subheader("🔝 Paesi consigliati")
+    user_input = {
+        "sex": sex,
+        "origin_country": origin,
+        "indici_da_migliorare": indici_da_migliorare,
+        "indici_desiderati": indici_desiderati
+    }
+
+    risultato = consiglia_paesi(df, **user_input)
+    
+    st.subheader("📊 Paesi consigliati:")
     st.dataframe(risultato)
 
+    st.subheader("📈 Punteggi Normalizzati")
     fig, ax = plt.subplots()
-    ax.barh(risultato["country_of_destination"], risultato["score_finale"], color="teal")
-    ax.set_xlabel("Punteggio finale combinato")
-    ax.set_title("Top Paesi Raccomandati")
+    ax.barh(risultato["country_of_destination"], risultato["score_finale"], color="mediumseagreen")
+    ax.set_xlabel("Score finale combinato")
+    ax.set_title("Top Paesi Consigliati")
     ax.invert_yaxis()
     st.pyplot(fig)
 
-# === COMPARATORE PAESI ===
+# === Confronto Paesi ===
+st.markdown("---")
 st.subheader("📊 Confronta due Paesi")
-paesi = sorted(df["country_of_destination"].unique())
-paese1 = st.selectbox("Paese 1", paesi)
-paese2 = st.selectbox("Paese 2", paesi)
-indici_sel = st.multiselect("Scegli indicatori da confrontare", indici_disponibili, default=["Jobs", "Income"])
 
-if st.button("📈 Mostra Confronto") and indici_sel:
-    medie1 = df[df["country_of_destination"] == paese1][[f"dest_{i}" for i in indici_sel]].mean()
-    medie2 = df[df["country_of_destination"] == paese2][[f"dest_{i}" for i in indici_sel]].mean()
+col1, col2 = st.columns(2)
+with col1:
+    paese1 = st.selectbox("Paese 1", sorted(df["country_of_destination"].unique()))
+with col2:
+    paese2 = st.selectbox("Paese 2", sorted(df["country_of_destination"].unique()), index=1)
 
-    x = range(len(indici_sel))
+indici_confronto = st.multiselect(
+    "Scegli gli indicatori per il confronto",
+    options=indici_disponibili,
+    default=["Jobs", "Income"]
+)
+
+if st.button("📊 Confronta Paesi"):
+    p1 = df[df["country_of_destination"] == paese1][[f"dest_{i}" for i in indici_confronto]].mean()
+    p2 = df[df["country_of_destination"] == paese2][[f"dest_{i}" for i in indici_confronto]].mean()
+
+    p1.index = [i.replace("dest_", "") for i in p1.index]
+    p2.index = [i.replace("dest_", "") for i in p2.index]
+
+    x = np.arange(len(indici_confronto))
     width = 0.35
     fig, ax = plt.subplots(figsize=(10, 5))
-    ax.bar([i - width/2 for i in x], medie1.values, width, label=paese1)
-    ax.bar([i + width/2 for i in x], medie2.values, width, label=paese2)
+    ax.bar(x - width / 2, p1.values, width=width, label=paese1)
+    ax.bar(x + width / 2, p2.values, width=width, label=paese2)
     ax.set_xticks(x)
-    ax.set_xticklabels(indici_sel, rotation=45, ha="right")
-    ax.set_ylabel("Valore normalizzato")
-    ax.set_title("Confronto Paesi")
+    ax.set_xticklabels(indici_confronto, rotation=45)
     ax.legend()
-    ax.grid(axis='y', linestyle='--', alpha=0.5)
     st.pyplot(fig)
 
-# === HASSE DIAGRAM ===
-st.subheader("📐 Relazioni tra Paesi: Hasse Diagram")
-dest_columns = [col for col in df.columns if col.startswith("dest_")]
-valid_dest_columns = [col for col in dest_columns if pd.api.types.is_numeric_dtype(df[col]) and not df[col].isna().any()]
+# === Diagramma Hasse ===
+st.markdown("---")
+st.subheader("📌 Visualizza Diagramma di Hasse")
 
-with st.expander("Visualizza Hasse Diagram"):
-    var1 = st.selectbox("Variabile 1", valid_dest_columns, index=valid_dest_columns.index("dest_Jobs"))
-    var2 = st.selectbox("Variabile 2", valid_dest_columns, index=valid_dest_columns.index("dest_Education"))
-    var3 = st.selectbox("Variabile 3", valid_dest_columns, index=valid_dest_columns.index("dest_Safety"))
-    color_metric = st.selectbox("Colora per", valid_dest_columns, index=valid_dest_columns.index("dest_Life satisfaction"))
+with st.expander("Mostra diagramma Hasse personalizzato"):
+    dest_cols = [col for col in df.columns if col.startswith("dest_")]
+
+    var1 = st.selectbox("Variabile 1", dest_cols)
+    var2 = st.selectbox("Variabile 2", dest_cols, index=1)
+    var3 = st.selectbox("Variabile 3", dest_cols, index=2)
+    color_metric = st.selectbox("Colore nodi per:", dest_cols, index=3)
 
     if st.button("📌 Mostra Hasse"):
         def dominates(a, b):
@@ -169,26 +174,28 @@ with st.expander("Visualizza Hasse Diagram"):
         df_grouped = df.groupby("country_of_destination")[selected_vars + [color_metric]].mean()
 
         G = nx.DiGraph()
-        countries = df_grouped.index.tolist()
-        G.add_nodes_from(countries)
-
-        for i in countries:
-            for j in countries:
+        for i in df_grouped.index:
+            for j in df_grouped.index:
                 if i == j:
                     continue
                 a = df_grouped.loc[i, selected_vars]
                 b = df_grouped.loc[j, selected_vars]
                 if dominates(a, b):
-                    intermedi = [k for k in countries if dominates(df_grouped.loc[i, selected_vars], df_grouped.loc[k, selected_vars])
-                                 and dominates(df_grouped.loc[k, selected_vars], df_grouped.loc[j, selected_vars]) and k != i and k != j]
+                    intermedi = [
+                        k for k in df_grouped.index
+                        if dominates(df_grouped.loc[i, selected_vars], df_grouped.loc[k, selected_vars])
+                        and dominates(df_grouped.loc[k, selected_vars], df_grouped.loc[j, selected_vars])
+                        and k != i and k != j
+                    ]
                     if not intermedi:
                         G.add_edge(i, j)
 
         try:
+            from networkx.drawing.nx_agraph import graphviz_layout
             pos = graphviz_layout(G, prog="dot")
         except:
             st.error("Errore: pygraphviz non installato")
-            st.stop()
+            pos = nx.spring_layout(G)
 
         color_vals = df_grouped[color_metric].to_dict()
         node_colors = [color_vals.get(n, 0.5) for n in G.nodes()]
@@ -197,22 +204,17 @@ with st.expander("Visualizza Hasse Diagram"):
         node_sizes = [800 + 400 * G.out_degree(n) for n in G.nodes()]
 
         fig, ax = plt.subplots(figsize=(14, 10))
-        nx.draw_networkx_nodes(G, pos, node_color=node_colors, node_size=node_sizes, cmap=cmap, ax=ax, edgecolors='black')
-
-        for node in G.nodes():
-            rgba = cmap(norm(color_vals.get(node, 0.5)))
-            luminance = 0.299 * rgba[0] + 0.587 * rgba[1] + 0.114 * rgba[2]
-            font_color = 'white' if luminance < 0.5 else 'black'
-            nx.draw_networkx_labels(G, pos, labels={node: node}, font_color=font_color, font_size=9, ax=ax)
-
-        nx.draw_networkx_edges(G, pos, ax=ax, arrows=True, arrowstyle='-|>', arrowsize=20, edge_color='gray', connectionstyle='arc3,rad=0.05')
+        nx.draw_networkx_nodes(G, pos, node_color=node_colors, node_size=node_sizes,
+                               cmap=cmap, ax=ax, edgecolors='black')
+        nx.draw_networkx_edges(G, pos, ax=ax, arrows=True,
+                               arrowstyle='-|>', arrowsize=20, edge_color='gray')
+        nx.draw_networkx_labels(G, pos, ax=ax, font_size=9)
 
         sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
         sm.set_array([])
         cbar = plt.colorbar(sm, ax=ax, shrink=0.7)
         cbar.set_label(color_metric)
 
-        plt.title(f"Hasse Diagram – {var1}, {var2}, {var3}", fontsize=14)
-        plt.axis("off")
-        plt.tight_layout()
+        ax.set_title("Hasse Diagram")
+        ax.axis("off")
         st.pyplot(fig)
