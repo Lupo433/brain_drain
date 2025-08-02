@@ -133,7 +133,7 @@ st.markdown("Rispondi a poche domande e scopri in quali paesi potresti vivere me
 sex = st.selectbox("Qual è il tuo sesso?", ["Male", "Female"])
 origin_country = st.text_input("Inserisci il tuo paese di origine (es. ITA):", "ITA")
 
-df = pd.read_csv("dataset_final (2).csv")
+df = pd.read_csv("dataset_final.csv")
 indici = [col.replace("dest_", "") for col in df.columns if col.startswith("dest_")]
 
 st.subheader("Cosa vuoi migliorare?")
