@@ -62,7 +62,7 @@ for ind in indici_disponibili:
             indici_da_migliorare[ind] = peso
 
 st.markdown("#### 2. Cosa DESIDERI trovare nel nuovo paese?")
-st.markdown("Indica gli aspetti che cerchi attivamente nel nuovo paese, anche se non mancano necessariamente nel tuo. Seleziona ciò che ti attira, e assegna un peso più alto agli elementi più importanti per te. Ad esempio: vuoi un ambiente più sano o alta soddisfazione di vita? Seleziona "Environment" o "Life satisfaction". ")
+st.markdown("Indica gli aspetti che cerchi attivamente nel nuovo paese, anche se non mancano necessariamente nel tuo. Seleziona ciò che ti attira, e assegna un peso più alto agli elementi più importanti per te. Ad esempio: vuoi un ambiente più sano o alta soddisfazione di vita? Seleziona 'Environment' o 'Life satisfaction'.")
 indici_desiderati = {}
 for ind in indici_disponibili:
     col1, col2 = st.columns([2, 1])
