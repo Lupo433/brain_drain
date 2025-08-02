@@ -49,8 +49,8 @@ def consiglia_paesi(df, user_input, top_n=5):
     return ranking
 
 # Funzione Hasse Diagram
-def build_hasse_plot(df, var1, var2, var3, color_metric):
-    df_grouped = df.groupby("country_of_destination")[[var1, var2, var3, color_metric]].mean()
+def build_hasse(df, selected_vars, color_metric):
+    df_grouped = df.groupby("country_of_destination")[selected_vars + [color_metric]].mean()
     G = nx.DiGraph()
     countries = df_grouped.index.tolist()
     G.add_nodes_from(countries)
@@ -145,17 +145,29 @@ if st.button("🔍 Scopri i paesi migliori"):
         ax.invert_yaxis()
         st.pyplot(fig)
 
-        with st.expander("📈 Visualizza Dominanza tra Paesi (Hasse Diagram)"):
-            st.markdown("Seleziona 3 variabili per confrontare i paesi secondo la teoria della dominanza parziale:")
-            col1, col2, col3, col4 = st.columns(4)
-            with col1:
-                var1 = st.selectbox("Variabile 1", [f"dest_{v}" for v in ["Jobs", "Income", "Safety", "Education", "Life satisfaction"]], index=0)
-            with col2:
-                var2 = st.selectbox("Variabile 2", [f"dest_{v}" for v in ["Jobs", "Income", "Safety", "Education", "Life satisfaction"]], index=1)
-            with col3:
-                var3 = st.selectbox("Variabile 3", [f"dest_{v}" for v in ["Jobs", "Income", "Safety", "Education", "Life satisfaction"]], index=2)
-            with col4:
-                color_metric = st.selectbox("Colora per", [f"dest_{v}" for v in ["Life satisfaction", "Environment", "Income"]], index=0)
-            build_hasse_plot(df, var1, var2, var3, color_metric)
+        # --- OPZIONE: Visualizza Hasse Diagram personalizzato ---
+        st.subheader("📈 Visualizza relazioni tra Paesi (opzionale)")
+        with st.expander("Mostra diagramma Hasse personalizzato"):
+            dest_columns = [col for col in df.columns if col.startswith("dest_")]
+
+            hasse_vars = st.multiselect(
+                "Seleziona da 2 a 4 indicatori per confrontare i Paesi",
+                options=dest_columns,
+                default=["dest_Jobs", "dest_Education", "dest_Safety"]
+            )
+
+            color_metric = st.selectbox(
+                "Colore dei nodi in base a:",
+                options=dest_columns,
+                index=dest_columns.index("dest_Life satisfaction") if "dest_Life satisfaction" in dest_columns else 0
+            )
+
+            if len(hasse_vars) >= 2:
+                if st.button("📌 Mostra Hasse Diagram"):
+                    build_hasse(df, hasse_vars, color_metric)
+            else:
+                st.info("Seleziona almeno 2 variabili per creare il grafo.")
+
     except Exception as e:
         st.error(f"Errore nel caricamento dei dati o calcolo: {e}")
+
