@@ -146,8 +146,10 @@ if st.button("🔍 Scopri i paesi migliori"):
         st.pyplot(fig)
 
         # --- OPZIONE: Visualizza Hasse Diagram personalizzato ---
-        st.subheader("📈 Visualizza relazioni tra Paesi (opzionale)")
-        with st.expander("Mostra diagramma Hasse personalizzato"):
+        st.subheader("📈 Relazioni tra Paesi (Diagramma Hasse)")
+        st.markdown("Puoi confrontare i paesi su 2-4 indicatori a tua scelta. I nodi sono i paesi, e le frecce mostrano dominanze multi-indicatore.")
+
+        if st.checkbox("✅ Visualizza Hasse Diagram personalizzato"):
             dest_columns = [col for col in df.columns if col.startswith("dest_")]
 
             hasse_vars = st.multiselect(
@@ -163,11 +165,9 @@ if st.button("🔍 Scopri i paesi migliori"):
             )
 
             if len(hasse_vars) >= 2:
-                if st.button("📌 Mostra Hasse Diagram"):
-                    build_hasse(df, hasse_vars, color_metric)
+                st.markdown("✅ Generazione del grafo in corso...")
+                build_hasse(df, hasse_vars, color_metric)
             else:
-                st.info("Seleziona almeno 2 variabili per creare il grafo.")
+                st.warning("Seleziona almeno 2 variabili per creare il grafo.")
 
-    except Exception as e:
-        st.error(f"Errore nel caricamento dei dati o calcolo: {e}")
 
