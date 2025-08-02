@@ -4,9 +4,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import networkx as nx
 from matplotlib.colors import Normalize
-import matplotlib.cm as cm
+from matplotlib import cm
 
-# --- FUNZIONE PRINCIPALE ---
+# === FUNZIONE DI CONSIGLIO PAESI ===
 def consiglia_paesi(df, user_input, top_n=5):
     orig = user_input["origin_country"]
     sex = user_input["sex"]
@@ -35,9 +35,10 @@ def consiglia_paesi(df, user_input, top_n=5):
         return pd.Series({"score": score, "motivi": ", ".join(motivi)})
 
     df_user[["score", "motivi"]] = df_user.apply(calcola_punteggio, axis=1)
-    df_user["score_norm"] = (df_user["score"] - df_user["score"].min()) / (
-        df_user["score"].max() - df_user["score"].min() + 1e-9
-    )
+
+    min_score = df_user["score"].min()
+    max_score = df_user["score"].max()
+    df_user["score_norm"] = (df_user["score"] - min_score) / (max_score - min_score + 1e-9)
 
     ranking = (
         df_user.groupby("country_of_destination")
@@ -51,31 +52,11 @@ def consiglia_paesi(df, user_input, top_n=5):
     )
     return ranking
 
-# --- HASSE DIAGRAM ---
+# === FUNZIONE DIAGRAMMA HASSE ===
 def dominates(a, b):
     return all(a >= b) and any(a > b)
 
-def calculate_positions_with_spacing(G, base_pos, min_distance=0.2, iterations=50):
-    pos = {node: np.array(coord) for node, coord in base_pos.items()}
-    for _ in range(iterations):
-        moved = False
-        nodes = list(pos.keys())
-        for i in range(len(nodes)):
-            for j in range(i + 1, len(nodes)):
-                ni, nj = nodes[i], nodes[j]
-                delta = pos[nj] - pos[ni]
-                distance = np.linalg.norm(delta)
-                if distance < min_distance:
-                    direction = delta / distance if distance else np.random.rand(2) - 0.5
-                    move_vector = direction * (min_distance - distance) / 2
-                    pos[ni] -= move_vector
-                    pos[nj] += move_vector
-                    moved = True
-        if not moved:
-            break
-    return pos
-
-def hierarchy_pos_multiple_roots(G, min_distance=0.2):
+def hierarchy_pos_multiple_roots(G):
     def hierarchy_pos(G, root, width=1., vert_gap=0.5, vert_loc=0, xcenter=0.5, pos=None):
         if pos is None:
             pos = {}
@@ -96,11 +77,10 @@ def hierarchy_pos_multiple_roots(G, min_distance=0.2):
     for i, root in enumerate(roots):
         sub_pos = hierarchy_pos(G, root, width=2.0, xcenter=i * spacing + spacing / 2)
         full_pos.update(sub_pos)
-    return calculate_positions_with_spacing(G, full_pos, min_distance=min_distance)
+    return full_pos
 
 def build_hasse(df, selected_vars, color_metric):
     df_grouped = df.groupby("country_of_destination")[selected_vars + [color_metric]].mean()
-
     G = nx.DiGraph()
     countries = df_grouped.index.tolist()
     G.add_nodes_from(countries)
@@ -118,7 +98,6 @@ def build_hasse(df, selected_vars, color_metric):
                     G.add_edge(i, j)
 
     pos = hierarchy_pos_multiple_roots(G)
-
     color_vals = df_grouped[color_metric].to_dict()
     node_colors = [color_vals.get(n, 0.5) for n in G.nodes()]
     cmap = cm.get_cmap('Blues')
@@ -135,88 +114,75 @@ def build_hasse(df, selected_vars, color_metric):
         font_color = 'white' if luminance < 0.5 else 'black'
         nx.draw_networkx_labels(G, pos, labels={node: node}, font_color=font_color, font_size=9, ax=ax)
 
-    nx.draw_networkx_edges(G, pos, ax=ax, edge_color="gray", arrows=True,
-                           arrowsize=28, width=1.6, connectionstyle='arc3,rad=0.08')
+    nx.draw_networkx_edges(G, pos, ax=ax, edge_color="gray", arrows=True, arrowsize=20, width=1.6)
 
     sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
     sm.set_array([])
     cbar = plt.colorbar(sm, ax=ax, shrink=0.7)
     cbar.set_label(color_metric)
-
     plt.title(f"Hasse Diagram – {', '.join(selected_vars)}", fontsize=14)
     plt.axis("off")
-    plt.tight_layout()
     st.pyplot(fig)
 
-# --- STREAMLIT APP ---
+# === INTERFACCIA ===
 st.set_page_config(page_title="GoWhere", layout="wide")
 st.title("🌍 GoWhere - Trova il tuo paese ideale")
-
 st.markdown("Rispondi a poche domande e scopri in quali paesi potresti vivere meglio!")
 
+# Input utente
 sex = st.selectbox("Qual è il tuo sesso?", ["Male", "Female"])
 origin_country = st.text_input("Inserisci il tuo paese di origine (es. ITA):", "ITA")
 
+df = pd.read_csv("dataset_final (2).csv")
+indici = [col.replace("dest_", "") for col in df.columns if col.startswith("dest_")]
+
 st.subheader("Cosa vuoi migliorare?")
-income = st.slider("Reddito", 0, 5, 3)
-jobs = st.slider("Opportunità di lavoro", 0, 5, 3)
-safety = st.slider("Sicurezza", 0, 5, 3)
+indici_da_migliorare = {}
+for ind in indici:
+    indici_da_migliorare[ind] = st.slider(ind, 0, 5, 3, key="migliora_" + ind)
 
 st.subheader("Cosa ti interessa di più?")
-life = st.slider("Soddisfazione di vita", 0, 5, 3)
-env = st.slider("Ambiente", 0, 5, 2)
+indici_desiderati = {}
+for ind in indici:
+    indici_desiderati[ind] = st.slider(ind, 0, 5, 2, key="desidera_" + ind)
 
 if st.button("🔍 Scopri i paesi migliori"):
-    try:
-        df = pd.read_csv("dataset_final.csv")
-        user_input = {
-            "sex": sex,
-            "origin_country": origin_country,
-            "indici_da_migliorare": {
-                "Income": income,
-                "Safety": safety,
-                "Jobs": jobs
-            },
-            "indici_desiderati": {
-                "Life satisfaction": life,
-                "Environment": env
-            }
-        }
+    user_input = {
+        "sex": sex,
+        "origin_country": origin_country,
+        "indici_da_migliorare": indici_da_migliorare,
+        "indici_desiderati": indici_desiderati
+    }
 
-        risultato = consiglia_paesi(df, user_input)
+    risultato = consiglia_paesi(df, user_input)
 
-        st.subheader("🔝 Paesi consigliati:")
-        st.dataframe(risultato)
+    st.subheader("🔝 Paesi consigliati:")
+    st.dataframe(risultato)
 
-        st.subheader("📊 Punteggi Normalizzati")
-        fig, ax = plt.subplots()
-        ax.barh(risultato["country_of_destination"], risultato["score_norm"], color="mediumseagreen")
-        ax.set_xlabel("Punteggio normalizzato (0–1)")
-        ax.set_title("Top Paesi Consigliati")
-        ax.invert_yaxis()
-        st.pyplot(fig)
+    st.subheader("📊 Punteggi Normalizzati")
+    fig, ax = plt.subplots()
+    ax.barh(risultato["country_of_destination"], risultato["score_norm"], color="mediumseagreen")
+    ax.set_xlabel("Punteggio normalizzato (0–1)")
+    ax.set_title("Top Paesi Consigliati")
+    ax.invert_yaxis()
+    st.pyplot(fig)
 
-        # --- Hasse Diagram interattivo ---
-        st.subheader("📈 Relazioni tra Paesi (Diagramma Hasse)")
-        if st.checkbox("✅ Visualizza Hasse Diagram personalizzato"):
-            dest_columns = [col for col in df.columns if col.startswith("dest_")]
+# Hasse diagram
+st.subheader("📈 Visualizza relazioni tra Paesi (opzionale)")
+with st.expander("Mostra diagramma Hasse personalizzato", expanded=True):
+    dest_columns = [col for col in df.columns if col.startswith("dest_")]
+    hasse_vars = st.multiselect(
+        "Seleziona da 2 a 4 indicatori per confrontare i Paesi",
+        options=dest_columns,
+        default=["dest_Jobs", "dest_Education", "dest_Safety"]
+    )
+    color_metric = st.selectbox(
+        "Colore dei nodi in base a:",
+        options=dest_columns,
+        index=dest_columns.index("dest_Life satisfaction") if "dest_Life satisfaction" in dest_columns else 0
+    )
 
-            hasse_vars = st.multiselect(
-                "Seleziona da 2 a 4 indicatori per confrontare i Paesi",
-                options=dest_columns,
-                default=["dest_Jobs", "dest_Education", "dest_Safety"]
-            )
-
-            color_metric = st.selectbox(
-                "Colore dei nodi in base a:",
-                options=dest_columns,
-                index=dest_columns.index("dest_Life satisfaction") if "dest_Life satisfaction" in dest_columns else 0
-            )
-
-            if len(hasse_vars) >= 2:
-                build_hasse(df, hasse_vars, color_metric)
-            else:
-                st.warning("Seleziona almeno 2 variabili.")
-
-    except Exception as e:
-        st.error(f"Errore nel caricamento dei dati o calcolo: {e}")
+    if len(hasse_vars) >= 2:
+        build_hasse(df, hasse_vars, color_metric)
+    else:
+        st.info("Seleziona almeno 2 variabili per creare il grafo.")
