@@ -50,7 +50,7 @@ sex = st.selectbox("Sesso", ["Male", "Female"])
 origin = st.selectbox("Paese di origine", sorted(df["country_of_birth"].unique()))
 
 st.markdown("#### 1. Cosa NON ti piace del tuo paese?")
-st.markdown("Seleziona gli aspetti che vuoi migliorare trasferendoti. Più alto il peso, più è importante allontanarsene.")
+st.markdown("Seleziona gli aspetti del tuo paese attuale che vorresti migliorare trasferendoti. Più alto è il peso (0–10), più è importante per te allontanarti da quella caratteristica. Ad esempio: se senti che mancano opportunità di lavoro, seleziona "Jobs" con un peso alto.")
 indici_da_migliorare = {}
 for ind in indici_disponibili:
     col1, col2 = st.columns([2, 1])
@@ -62,7 +62,7 @@ for ind in indici_disponibili:
             indici_da_migliorare[ind] = peso
 
 st.markdown("#### 2. Cosa DESIDERI trovare nel nuovo paese?")
-st.markdown("Seleziona gli aspetti che cerchi attivamente. Più alto il peso, più è importante per te.")
+st.markdown("Indica gli aspetti che cerchi attivamente nel nuovo paese, anche se non mancano necessariamente nel tuo. Seleziona ciò che ti attira, e assegna un peso più alto agli elementi più importanti per te. Ad esempio: vuoi un ambiente più sano o alta soddisfazione di vita? Seleziona "Environment" o "Life satisfaction". ")
 indici_desiderati = {}
 for ind in indici_disponibili:
     col1, col2 = st.columns([2, 1])
