@@ -1,12 +1,12 @@
 import streamlit as st
 import pandas as pd
+import numpy as np
 import matplotlib.pyplot as plt
 import networkx as nx
-import numpy as np
 from matplotlib.colors import Normalize
 import matplotlib.cm as cm
 
-# --- FUNZIONE ---
+# --- FUNZIONE PRINCIPALE ---
 def consiglia_paesi(df, user_input, top_n=5):
     orig = user_input["origin_country"]
     sex = user_input["sex"]
@@ -18,23 +18,26 @@ def consiglia_paesi(df, user_input, top_n=5):
     def calcola_punteggio(r):
         score = 0
         motivi = []
+
         for ind, peso in migliora.items():
             delta = r[f"dest_{ind}"] - r[f"origin_{ind}"]
             contrib = max(delta, 0) * peso
             score += contrib
             if delta > 0:
                 motivi.append(f"{ind} ↑ (+{delta:.2f})")
+
         for ind, peso in desidera.items():
             val = r[f"dest_{ind}"]
             contrib = val * peso
             score += contrib
             motivi.append(f"{ind} = {val:.2f}")
+
         return pd.Series({"score": score, "motivi": ", ".join(motivi)})
 
     df_user[["score", "motivi"]] = df_user.apply(calcola_punteggio, axis=1)
-    min_score = df_user["score"].min()
-    max_score = df_user["score"].max()
-    df_user["score_norm"] = (df_user["score"] - min_score) / (max_score - min_score + 1e-9)
+    df_user["score_norm"] = (df_user["score"] - df_user["score"].min()) / (
+        df_user["score"].max() - df_user["score"].min() + 1e-9
+    )
 
     ranking = (
         df_user.groupby("country_of_destination")
@@ -48,62 +51,109 @@ def consiglia_paesi(df, user_input, top_n=5):
     )
     return ranking
 
-# Funzione Hasse Diagram
+# --- HASSE DIAGRAM ---
+def dominates(a, b):
+    return all(a >= b) and any(a > b)
+
+def calculate_positions_with_spacing(G, base_pos, min_distance=0.2, iterations=50):
+    pos = {node: np.array(coord) for node, coord in base_pos.items()}
+    for _ in range(iterations):
+        moved = False
+        nodes = list(pos.keys())
+        for i in range(len(nodes)):
+            for j in range(i + 1, len(nodes)):
+                ni, nj = nodes[i], nodes[j]
+                delta = pos[nj] - pos[ni]
+                distance = np.linalg.norm(delta)
+                if distance < min_distance:
+                    direction = delta / distance if distance else np.random.rand(2) - 0.5
+                    move_vector = direction * (min_distance - distance) / 2
+                    pos[ni] -= move_vector
+                    pos[nj] += move_vector
+                    moved = True
+        if not moved:
+            break
+    return pos
+
+def hierarchy_pos_multiple_roots(G, min_distance=0.2):
+    def hierarchy_pos(G, root, width=1., vert_gap=0.5, vert_loc=0, xcenter=0.5, pos=None):
+        if pos is None:
+            pos = {}
+        pos[root] = (xcenter, vert_loc)
+        children = list(G.successors(root))
+        if children:
+            dx = width / len(children)
+            nextx = xcenter - width / 2 + dx / 2
+            for child in children:
+                pos = hierarchy_pos(G, child, width=dx, vert_gap=vert_gap,
+                                    vert_loc=vert_loc - vert_gap, xcenter=nextx, pos=pos)
+                nextx += dx
+        return pos
+
+    roots = [n for n in G.nodes if G.in_degree(n) == 0]
+    full_pos = {}
+    spacing = 2.5 / max(len(roots), 1)
+    for i, root in enumerate(roots):
+        sub_pos = hierarchy_pos(G, root, width=2.0, xcenter=i * spacing + spacing / 2)
+        full_pos.update(sub_pos)
+    return calculate_positions_with_spacing(G, full_pos, min_distance=min_distance)
+
 def build_hasse(df, selected_vars, color_metric):
     df_grouped = df.groupby("country_of_destination")[selected_vars + [color_metric]].mean()
+
     G = nx.DiGraph()
     countries = df_grouped.index.tolist()
     G.add_nodes_from(countries)
-
-    def dominates(a, b):
-        return all(a >= b) and any(a > b)
 
     for i in countries:
         for j in countries:
             if i == j:
                 continue
-            a = df_grouped.loc[i, [var1, var2, var3]]
-            b = df_grouped.loc[j, [var1, var2, var3]]
+            a = df_grouped.loc[i, selected_vars]
+            b = df_grouped.loc[j, selected_vars]
             if dominates(a, b):
-                intermedi = [k for k in countries if dominates(df_grouped.loc[i, [var1, var2, var3]], df_grouped.loc[k, [var1, var2, var3]])
-                             and dominates(df_grouped.loc[k, [var1, var2, var3]], df_grouped.loc[j, [var1, var2, var3]]) and k != i and k != j]
+                intermedi = [k for k in countries if dominates(df_grouped.loc[i, selected_vars], df_grouped.loc[k, selected_vars])
+                             and dominates(df_grouped.loc[k, selected_vars], df_grouped.loc[j, selected_vars]) and k != i and k != j]
                 if not intermedi:
                     G.add_edge(i, j)
 
-    try:
-        pos = nx.nx_pydot.graphviz_layout(G, prog="dot")
-    except:
-        pos = nx.spring_layout(G)
+    pos = hierarchy_pos_multiple_roots(G)
+
+    color_vals = df_grouped[color_metric].to_dict()
+    node_colors = [color_vals.get(n, 0.5) for n in G.nodes()]
+    cmap = cm.get_cmap('Blues')
+    norm = Normalize(vmin=min(node_colors), vmax=max(node_colors))
+    node_sizes = [800 + 400 * G.out_degree(n) for n in G.nodes()]
 
     fig, ax = plt.subplots(figsize=(14, 10))
-    node_colors = [df_grouped.loc[n, color_metric] for n in G.nodes()]
-    node_sizes = [800 + 400 * G.out_degree(n) for n in G.nodes()]
-    norm = Normalize(vmin=min(node_colors), vmax=max(node_colors))
-    cmap = cm.get_cmap('Blues')
+    nx.draw_networkx_nodes(G, pos, node_color=node_colors, node_size=node_sizes,
+                           cmap=cmap, ax=ax, edgecolors="black")
 
-    nx.draw_networkx_nodes(G, pos, node_color=node_colors, cmap=cmap, node_size=node_sizes, ax=ax)
-    nx.draw_networkx_edges(G, pos, ax=ax, arrows=True, arrowsize=25, edge_color="gray")
     for node in G.nodes():
-        color = cmap(norm(df_grouped.loc[node, color_metric]))
-        luminance = 0.299 * color[0] + 0.587 * color[1] + 0.114 * color[2]
+        rgba = cmap(norm(color_vals.get(node, 0.5)))
+        luminance = 0.299 * rgba[0] + 0.587 * rgba[1] + 0.114 * rgba[2]
         font_color = 'white' if luminance < 0.5 else 'black'
-        nx.draw_networkx_labels(G, pos, labels={node: node}, font_color=font_color, font_size=8, ax=ax)
+        nx.draw_networkx_labels(G, pos, labels={node: node}, font_color=font_color, font_size=9, ax=ax)
+
+    nx.draw_networkx_edges(G, pos, ax=ax, edge_color="gray", arrows=True,
+                           arrowsize=28, width=1.6, connectionstyle='arc3,rad=0.08')
 
     sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
     sm.set_array([])
     cbar = plt.colorbar(sm, ax=ax, shrink=0.7)
     cbar.set_label(color_metric)
 
-    ax.set_title(f"Hasse Diagram – {var1}, {var2}, {var3}", fontsize=14)
-    ax.axis('off')
+    plt.title(f"Hasse Diagram – {', '.join(selected_vars)}", fontsize=14)
+    plt.axis("off")
+    plt.tight_layout()
     st.pyplot(fig)
 
-# --- INTERFACCIA APP ---
+# --- STREAMLIT APP ---
 st.set_page_config(page_title="GoWhere", layout="wide")
 st.title("🌍 GoWhere - Trova il tuo paese ideale")
+
 st.markdown("Rispondi a poche domande e scopri in quali paesi potresti vivere meglio!")
 
-# Input
 sex = st.selectbox("Qual è il tuo sesso?", ["Male", "Female"])
 origin_country = st.text_input("Inserisci il tuo paese di origine (es. ITA):", "ITA")
 
@@ -116,7 +166,6 @@ st.subheader("Cosa ti interessa di più?")
 life = st.slider("Soddisfazione di vita", 0, 5, 3)
 env = st.slider("Ambiente", 0, 5, 2)
 
-# Bottone
 if st.button("🔍 Scopri i paesi migliori"):
     try:
         df = pd.read_csv("dataset_final.csv")
@@ -133,7 +182,9 @@ if st.button("🔍 Scopri i paesi migliori"):
                 "Environment": env
             }
         }
+
         risultato = consiglia_paesi(df, user_input)
+
         st.subheader("🔝 Paesi consigliati:")
         st.dataframe(risultato)
 
@@ -145,10 +196,8 @@ if st.button("🔍 Scopri i paesi migliori"):
         ax.invert_yaxis()
         st.pyplot(fig)
 
-        # --- OPZIONE: Visualizza Hasse Diagram personalizzato ---
+        # --- Hasse Diagram interattivo ---
         st.subheader("📈 Relazioni tra Paesi (Diagramma Hasse)")
-        st.markdown("Puoi confrontare i paesi su 2-4 indicatori a tua scelta. I nodi sono i paesi, e le frecce mostrano dominanze multi-indicatore.")
-
         if st.checkbox("✅ Visualizza Hasse Diagram personalizzato"):
             dest_columns = [col for col in df.columns if col.startswith("dest_")]
 
@@ -165,9 +214,9 @@ if st.button("🔍 Scopri i paesi migliori"):
             )
 
             if len(hasse_vars) >= 2:
-                st.markdown("✅ Generazione del grafo in corso...")
                 build_hasse(df, hasse_vars, color_metric)
             else:
-                st.warning("Seleziona almeno 2 variabili per creare il grafo.")
+                st.warning("Seleziona almeno 2 variabili.")
 
-
+    except Exception as e:
+        st.error(f"Errore nel caricamento dei dati o calcolo: {e}")
