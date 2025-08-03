@@ -213,10 +213,10 @@ if not df.empty:
     # Layout top-down (migliori in alto) usando Graphviz DOT
     try:
         from networkx.drawing.nx_agraph import graphviz_layout
-        pos = graphviz_layout(G, prog="dot")  # top-down layout
-    except ImportError:
-        pos = nx.spring_layout(G, seed=42)
+        pos = graphviz_layout(G, prog="dot")
+    except Exception as e:
         st.warning("Graphviz non disponibile, uso layout alternativo.")
+        pos = nx.shell_layout(G)  # oppure: nx.kamada_kawai_layout(G)
 
     # Colori e dimensioni dei nodi
     color_vals = df_grouped[f"dest_{color_metric}"].to_dict()
