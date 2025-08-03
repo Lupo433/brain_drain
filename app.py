@@ -181,66 +181,43 @@ if selected_ind:
     ax.legend()
     st.pyplot(fig)
 
-# === HASSE DIAGRAM ===
-st.subheader("📈 Hasse Diagram of Destinations")
+# === DESTINATION BUBBLE CHART ===
+st.subheader("🟢 Destination Bubble Chart")
 
-if not df.empty:
-    color_metric = "Safety"  # Indicatore per colorare i nodi
-    df_grouped = df.groupby("country_of_destination").mean(numeric_only=True)
+with st.expander("Customize chart indicators"):
+    col1, col2, col3, col4 = st.columns(4)
+    with col1:
+        x_var = st.selectbox("X-axis", indicators, index=0)
+    with col2:
+        y_var = st.selectbox("Y-axis", indicators, index=1)
+    with col3:
+        size_var = st.selectbox("Bubble size", indicators, index=2)
+    with col4:
+        color_var = st.selectbox("Color", indicators, index=3)
 
-    # Indicatori disponibili
-    indicator_cols = [col for col in df_grouped.columns if col.startswith("dest_")]
-    df_indicators = df_grouped[indicator_cols]
+# Raggruppa i dati per paese di destinazione
+df_grouped = df.groupby("country_of_destination").mean(numeric_only=True).reset_index()
 
-    # Calcola uno score totale (può essere personalizzato)
-    score = df_indicators.sum(axis=1)
-    df_grouped["score"] = score
+# Costruisci figure
+fig, ax = plt.subplots(figsize=(10, 6))
 
-    # Costruisci grafo con archi da migliori a peggiori (relazione di dominanza)
-    G = nx.DiGraph()
-    for country in df_grouped.index:
-        G.add_node(country, label=country, score=df_grouped.loc[country, "score"])
+x = df_grouped[f"dest_{x_var}"]
+y = df_grouped[f"dest_{y_var}"]
+sizes = df_grouped[f"dest_{size_var}"] * 300  # Scaling factor
+colors = df_grouped[f"dest_{color_var}"]
 
-    for a in df_grouped.index:
-        for b in df_grouped.index:
-            if a != b:
-                a_vals = df_indicators.loc[a]
-                b_vals = df_indicators.loc[b]
-                # A è migliore di B su tutti gli indicatori → disegna freccia A → B
-                if all(a_vals >= b_vals) and any(a_vals > b_vals):
-                    G.add_edge(a, b)
+scatter = ax.scatter(x, y, s=sizes, c=colors, cmap="plasma", alpha=0.8, edgecolors="black")
 
-    # Layout top-down (migliori in alto) usando Graphviz DOT
-    try:
-        from networkx.drawing.nx_agraph import graphviz_layout
-        pos = graphviz_layout(G, prog="dot")
-    except Exception as e:
-        st.warning("Graphviz non disponibile, uso layout alternativo.")
-        pos = nx.shell_layout(G)  # oppure: nx.kamada_kawai_layout(G)
+# Aggiungi etichette
+for i, row in df_grouped.iterrows():
+    ax.text(row[f"dest_{x_var}"], row[f"dest_{y_var}"], row["country_of_destination"], fontsize=8, ha='center', va='center')
 
-    # Colori e dimensioni dei nodi
-    color_vals = df_grouped[f"dest_{color_metric}"].to_dict()
-    node_colors = [color_vals.get(n, 0.5) for n in G.nodes()]
-    cmap = plt.cm.plasma
-    norm = plt.Normalize(min(node_colors), max(node_colors))
-    node_sizes = [500 + 300 * G.out_degree(n) for n in G.nodes()]
+ax.set_xlabel(x_var)
+ax.set_ylabel(y_var)
+ax.set_title("Destination Countries Bubble Chart", fontsize=14)
 
-    # Disegna grafo
-    fig, ax = plt.subplots(figsize=(12, 12))
-    nx.draw_networkx_nodes(G, pos, node_color=node_colors, node_size=node_sizes,
-                           cmap=cmap, ax=ax, edgecolors='black')
-    nx.draw_networkx_labels(G, pos, font_size=9, ax=ax)
-    nx.draw_networkx_edges(G, pos, ax=ax, arrows=True,
-                           arrowstyle='-|>', arrowsize=10, edge_color='gray')
+# Colormap
+cbar = plt.colorbar(scatter, ax=ax)
+cbar.set_label(f"{color_var}")
 
-    sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
-    sm.set_array([])
-    cbar = plt.colorbar(sm, ax=ax, shrink=0.6)
-    cbar.set_label(f"dest_{color_metric}")
-
-    plt.title("Hasse Diagram: Better → Worse", fontsize=16)
-    plt.axis("off")
-    st.pyplot(fig)
-
-else:
-    st.warning("No data available to build the diagram.")
+st.pyplot(fig)
