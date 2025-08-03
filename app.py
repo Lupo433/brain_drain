@@ -125,8 +125,9 @@ if st.button("🔍 Discover best countries"):
     st.markdown("Here are the countries that best match your preferences. You can review the reasoning behind the score for each destination.")
     
     # Display results in formatted text instead of dataframe
-    for i, row in result.iterrows():
-        st.markdown(f"**{i+1}. {row['country_of_destination']}** — Score: `{row['final_score']:.4f}`  \n**Reasons:** {row['reasons'].replace(',', '<br>')}", unsafe_allow_html=True)
+    for idx, row in result.iterrows():
+        st.markdown(f"**{idx+1}. {row['country_of_destination']}** — Score: `{row['final_score']:.4f}`")
+        st.markdown(f"<div style='margin-left:15px; font-size: 0.9em; line-height: 1.4em;'>{row['reasons'].replace(',', '<br>')}</div>", unsafe_allow_html=True)
     
     # Visualization (resized and clean)
     st.markdown("### 📊 Visualization of top scores")
