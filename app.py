@@ -222,7 +222,11 @@ with st.expander("Customize and view Hasse diagram"):
                         G.add_edge(i, j)
 
         # 📐 Better layout
-        pos = nx.nx_pydot.graphviz_layout(G, prog='dot')
+        import pygraphviz
+        from networkx.drawing.nx_agraph import graphviz_layout
+
+        pos = graphviz_layout(G, prog='dot')
+
 
         # 🎨 Node coloring
         color_vals = df_grouped[color_metric].to_dict()
