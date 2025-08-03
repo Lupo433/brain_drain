@@ -72,7 +72,7 @@ for i, ind in enumerate(indicators):
             indices_desired[ind] = weight
 
 # === RECOMMENDATION ENGINE ===
-if st.button("🔍 Discover best countries"):
+if submitted:
     def recommend_countries(df, origin, sex, to_improve, desired, top_n=5):
         df_user = df[(df["country_of_birth"] == origin) & (df["sex"] == sex)].copy()
 
@@ -120,14 +120,22 @@ if st.button("🔍 Discover best countries"):
         return top_countries
 
     result = recommend_countries(df, origin, sex, indices_to_improve, indices_desired)
+
     st.subheader("🔝 Recommended Countries")
-    st.dataframe(result)
-    fig, ax = plt.subplots(figsize=(8, 5))
-    ax.barh(result["country_of_destination"], result["final_score"], color="teal")
+    st.markdown("Here are the countries that best match your preferences. You can review the reasoning behind the score for each destination.")
+
+    st.dataframe(result, use_container_width=True)
+
+    st.markdown("### 📊 Visualization of top scores")
+    st.caption("This chart shows how strongly each recommended country matches your personal preferences.")
+
+    fig, ax = plt.subplots(figsize=(6, 3.5))
+    ax.barh(result["country_of_destination"], result["final_score"], color="teal", height=0.4)
     ax.set_xlabel("Final combined score")
     ax.set_title("Top Recommended Countries")
     ax.invert_yaxis()
     st.pyplot(fig)
+
 
 # === COMPARE COUNTRIES ===
 st.subheader("📊 Compare two Countries")
