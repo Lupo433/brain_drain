@@ -12,7 +12,7 @@ df = pd.read_csv("dataset_final.csv")
 st.set_page_config(page_title="GoWhere - Brain Drain Analyzer", layout="centered")
 
 # === TITLE ===
-st.title("🌍 22 GoWhere - Brain Drain Analyzer")
+st.title("🌍 222 GoWhere - Brain Drain Analyzer")
 st.markdown("""
 This tool helps you find the best countries based on your personal preferences,
 comparing key factors like jobs, safety, health, and more. Answer a few questions
@@ -122,12 +122,12 @@ if st.button("🔍 Discover best countries"):
     result = recommend_countries(df, origin, sex, indices_to_improve, indices_desired)
 
     # === DISPLAY TABULAR RESULTS (with word wrapping) ===
-    # === HTML Table rendering ===
+    if not result.empty:
     st.markdown("### 🏆 Recommended Countries")
     st.markdown("""
     Here are the countries that best match your preferences. You can review the reasoning behind the score for each destination.
     """)
-    
+
     result_html = """
     <style>
         table {
@@ -159,7 +159,7 @@ if st.button("🔍 Discover best countries"):
     </thead>
     <tbody>
     """
-    
+
     for _, row in result.iterrows():
         reasons_formatted = "<br>".join(row["reasons"].split(", "))
         result_html += f"""
@@ -169,21 +169,22 @@ if st.button("🔍 Discover best countries"):
             <td>{reasons_formatted}</td>
         </tr>
         """
-    
+
     result_html += "</tbody></table>"
-    
+
+    # ✅ FUNZIONA SOLO CON unsafe_allow_html=True
     st.markdown(result_html, unsafe_allow_html=True)
 
-    
-    # Visualization (resized and clean)
+    # Chart
     st.markdown("### 📊 Visualization of top scores")
     st.markdown("This chart shows how strongly each recommended country matches your personal preferences.")
-    fig, ax = plt.subplots(figsize=(5, 3.5))  # Smaller figure
+    fig, ax = plt.subplots(figsize=(5, 3.5))
     ax.barh(result["country_of_destination"], result["final_score"], color="teal", height=0.4)
     ax.set_xlabel("Final combined score")
     ax.set_title("Top Recommended Countries")
     ax.invert_yaxis()
     st.pyplot(fig)
+
 
 
 # === COMPARE COUNTRIES ===
