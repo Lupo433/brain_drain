@@ -124,15 +124,22 @@ if st.button("🔍 Discover best countries"):
     st.subheader("🔝 Recommended Countries")
     st.markdown("Here are the countries that best match your preferences. You can review the reasoning behind the score for each destination.")
     
-    # Display results in formatted text instead of dataframe
-    for idx, row in result.iterrows():
-        st.markdown(f"**{idx+1}. {row['country_of_destination']}** — Score: `{row['final_score']:.4f}`")
-        st.markdown(f"<div style='margin-left:15px; font-size: 0.9em; line-height: 1.4em;'>{row['reasons'].replace(',', '<br>')}</div>", unsafe_allow_html=True)
+    # Clean and wrap reasons into readable format
+    for i, row in result.iterrows():
+        with st.container():
+            st.markdown(f"### {i+1}. {row['country_of_destination']} — Score: `{row['final_score']:.4f}`")
+            st.markdown(
+                f"<ul style='margin-left: 20px; font-size: 0.9em;'>"
+                + "".join([f"<li>{r.strip()}</li>" for r in row['reasons'].split(",")])
+                + "</ul>",
+                unsafe_allow_html=True
+            )
+            st.markdown("---")
     
     # Visualization (resized and clean)
     st.markdown("### 📊 Visualization of top scores")
     st.markdown("This chart shows how strongly each recommended country matches your personal preferences.")
-    fig, ax = plt.subplots(figsize=(6, 3.5))  # Smaller figure
+    fig, ax = plt.subplots(figsize=(5, 3.5))  # Smaller figure
     ax.barh(result["country_of_destination"], result["final_score"], color="teal", height=0.4)
     ax.set_xlabel("Final combined score")
     ax.set_title("Top Recommended Countries")
