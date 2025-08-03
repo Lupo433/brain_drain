@@ -14,7 +14,7 @@ st.set_page_config(page_title="GoWhere - Brain Drain Analyzer", layout="centered
 # === TITLE ===
 st.title("🌍 GoWhere - Brain Drain Analyzer")
 st.markdown("""
-This tool helps you find the best countries based on your personal preferences,
+Ts tool helps you find the best countries based on your personal preferences,
 comparing key factors like jobs, safety, health, and more. Answer a few questions
 to get personalized recommendations and visualize the best destinations.
 """)
