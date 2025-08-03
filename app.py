@@ -12,7 +12,7 @@ df = pd.read_csv("dataset_final.csv")
 st.set_page_config(page_title="GoWhere - Brain Drain Analyzer", layout="centered")
 
 # === TITLE ===
-st.title("🌍 22222 GoWhere - Brain Drain Analyzer")
+st.title("🌍 GoWhere - Brain Drain Analyzer")
 st.markdown("""
 This tool helps you find the best countries based on your personal preferences,
 comparing key factors like jobs, safety, health, and more. Answer a few questions
@@ -121,20 +121,17 @@ if st.button("🔍 Discover best countries"):
 
     result = recommend_countries(df, origin, sex, indices_to_improve, indices_desired)
 
+    # === DISPLAY TABULAR RESULTS (with word wrapping) ===
     st.subheader("🔝 Recommended Countries")
     st.markdown("Here are the countries that best match your preferences. You can review the reasoning behind the score for each destination.")
     
-    # Clean and wrap reasons into readable format
-    for i, row in result.iterrows():
-        with st.container():
-            st.markdown(f"### {i+1}. {row['country_of_destination']} — Score: `{row['final_score']:.4f}`")
-            st.markdown(
-                f"<ul style='margin-left: 20px; font-size: 0.9em;'>"
-                + "".join([f"<li>{r.strip()}</li>" for r in row['reasons'].split(",")])
-                + "</ul>",
-                unsafe_allow_html=True
-            )
-            st.markdown("---")
+    # Wrap 'reasons' in a nicer, multiline format
+    result_display = result.copy()
+    result_display["reasons"] = result_display["reasons"].str.replace(", ", "\n")
+    
+    # Show as dataframe with container width
+    st.dataframe(result_display, use_container_width=True)
+
     
     # Visualization (resized and clean)
     st.markdown("### 📊 Visualization of top scores")
