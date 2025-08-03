@@ -182,47 +182,26 @@ if selected_ind:
     st.pyplot(fig)
 
 # === HASSE DIAGRAM ===
-from networkx.drawing.nx_agraph import graphviz_layout
+import streamlit as st
+import networkx as nx
 
-st.subheader("📈 Country Relationship Diagram")
-st.markdown("""
-This Hasse diagram shows dominance relationships between countries based on selected indicators.  
-- Each **node** is a country.
-- A **directed edge (A → B)** means A dominates B across selected metrics.
-- Node **color represents the value** of a fourth indicator (e.g., Safety).
-""")
+def convert_graph_to_dot(G):
+    dot_str = "digraph G {\n"
+    for node in G.nodes:
+        label = G.nodes[node].get("label", node)
+        dot_str += f'    "{node}" [label="{label}"];\n'
+    for source, target in G.edges:
+        dot_str += f'    "{source}" -> "{target}";\n'
+    dot_str += "}"
+    return dot_str
 
-with st.expander("Customize and view Hasse diagram"):
-    dest_cols = [col for col in df.columns if col.startswith("dest_")]
-    default_vars = ["dest_Education", "dest_Jobs", "dest_Income", "dest_Safety"]
-    var1 = st.selectbox("Variable 1", dest_cols, index=dest_cols.index(default_vars[0]))
-    var2 = st.selectbox("Variable 2", dest_cols, index=dest_cols.index(default_vars[1]))
-    var3 = st.selectbox("Variable 3", dest_cols, index=dest_cols.index(default_vars[2]))
-    color_metric = st.selectbox("Node color based on", dest_cols, index=dest_cols.index(default_vars[3]))
+# Esempio uso:
+# G = nx.DiGraph()
+# G.add_edge("ITA", "USA")
+# ...
+dot_data = convert_graph_to_dot(G)
+st.graphviz_chart(dot_data)
 
-    def dominates(a, b):
-        return all(a >= b) and any(a > b)
-
-    if st.button("📌 Show Hasse Diagram"):
-        selected = [var1, var2, var3]
-        df_grouped = df.groupby("country_of_destination")[selected + [color_metric]].mean()
-        G = nx.DiGraph()
-        countries = df_grouped.index.tolist()
-
-        for i in countries:
-            for j in countries:
-                if i == j:
-                    continue
-                a = df_grouped.loc[i, selected]
-                b = df_grouped.loc[j, selected]
-                if dominates(a, b):
-                    intermediates = [k for k in countries if dominates(df_grouped.loc[i, selected], df_grouped.loc[k, selected])
-                                     and dominates(df_grouped.loc[k, selected], df_grouped.loc[j, selected])
-                                     and k != i and k != j]
-                    if not intermediates:
-                        G.add_edge(i, j)
-
-        pos = graphviz_layout(G, prog='dot')  # layout gerarchico verticale
 
         color_vals = df_grouped[color_metric].to_dict()
         node_colors = [color_vals.get(n, 0.5) for n in G.nodes()]
