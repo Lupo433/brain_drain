@@ -1,8 +1,7 @@
 streamlit
-pandas
-matplotlib
 networkx
+matplotlib
 scikit-learn
+pandas
+numpy
 pygraphviz
-pydot
-graphviz
