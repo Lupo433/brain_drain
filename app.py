@@ -203,25 +203,25 @@ dot_data = convert_graph_to_dot(G)
 st.graphviz_chart(dot_data)
 
 
-        color_vals = df_grouped[color_metric].to_dict()
-        node_colors = [color_vals.get(n, 0.5) for n in G.nodes()]
-        cmap = plt.cm.plasma
-        norm = plt.Normalize(min(node_colors), max(node_colors))
-        node_sizes = [500 + 300 * G.out_degree(n) for n in G.nodes()]
+    color_vals = df_grouped[color_metric].to_dict()
+    node_colors = [color_vals.get(n, 0.5) for n in G.nodes()]
+    cmap = plt.cm.plasma
+    norm = plt.Normalize(min(node_colors), max(node_colors))
+    node_sizes = [500 + 300 * G.out_degree(n) for n in G.nodes()]
 
-        fig, ax = plt.subplots(figsize=(12, 10))
-        nx.draw_networkx_nodes(G, pos, node_color=node_colors, node_size=node_sizes,
-                               cmap=cmap, ax=ax, edgecolors='black')
-        nx.draw_networkx_labels(G, pos, font_size=8, ax=ax)
-        nx.draw_networkx_edges(G, pos, ax=ax, arrows=True,
-                               arrowstyle='-|>', arrowsize=12, edge_color='gray')
+    fig, ax = plt.subplots(figsize=(12, 10))
+    nx.draw_networkx_nodes(G, pos, node_color=node_colors, node_size=node_sizes,
+                           cmap=cmap, ax=ax, edgecolors='black')
+    nx.draw_networkx_labels(G, pos, font_size=8, ax=ax)
+    nx.draw_networkx_edges(G, pos, ax=ax, arrows=True,
+                           arrowstyle='-|>', arrowsize=12, edge_color='gray')
 
-        sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
-        sm.set_array([])
-        cbar = plt.colorbar(sm, ax=ax, shrink=0.6)
-        cbar.set_label(color_metric)
+    sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
+    sm.set_array([])
+    cbar = plt.colorbar(sm, ax=ax, shrink=0.6)
+    cbar.set_label(color_metric)
 
-        plt.title("Hasse Diagram", fontsize=16, pad=20)
-        plt.axis("off")
-        plt.tight_layout(pad=2)
-        st.pyplot(fig)
+    plt.title("Hasse Diagram", fontsize=16, pad=20)
+    plt.axis("off")
+    plt.tight_layout(pad=2)
+    st.pyplot(fig)
