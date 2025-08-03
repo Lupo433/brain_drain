@@ -6,176 +6,171 @@ import networkx as nx
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics.pairwise import cosine_similarity
 
-# --- DATASET ---
+# === LOAD DATA ===
 df = pd.read_csv("dataset_final.csv")
 
 st.set_page_config(page_title="GoWhere - Brain Drain Analyzer", layout="centered")
 
-# === HEADER ===
+# === TITLE ===
 st.title("🌍 GoWhere - Brain Drain Analyzer")
-st.markdown(
-    """
-    Questo strumento ti aiuta a scoprire i paesi migliori per le tue esigenze personali, confrontando indicatori
-    chiave come lavoro, salute, ambiente e altro. Rispondi alle domande, scopri raccomandazioni personalizzate
-    e confronta visivamente le opzioni disponibili.
-    """
-)
+st.markdown("""
+This tool helps you find the best countries based on your personal preferences,
+comparing key factors like jobs, safety, health, and more. Answer a few questions
+to get personalized recommendations and visualize the best destinations.
+""")
 
-# === INDICI ===
-indici_disponibili = [
+# === INDICATORS ===
+indicators = [
     "Education", "Jobs", "Income", "Safety", "Health", "Environment",
     "Civic engagement", "Accessiblity to services", "Housing",
     "Community", "Life satisfaction", "PR rating", "CL rating"
 ]
 
-istruzioni_indici = {
-    "Education": "Qualità del sistema educativo.",
-    "Jobs": "Opportunità di lavoro.",
-    "Income": "Reddito medio.",
-    "Safety": "Sicurezza personale.",
-    "Health": "Sistema sanitario.",
-    "Environment": "Qualità ambientale.",
-    "Civic engagement": "Partecipazione civica.",
-    "Accessiblity to services": "Accesso ai servizi.",
-    "Housing": "Alloggi disponibili.",
-    "Community": "Relazioni sociali.",
-    "Life satisfaction": "Soddisfazione di vita.",
-    "PR rating": "Libertà politica.",
-    "CL rating": "Libertà civile."
-}
+# === USER PREFERENCES ===
+with st.form("user_preferences_form"):
+    st.subheader("🧭 Customize your preferences")
 
-# === PREFERENZE UTENTE ===
-st.subheader("👤 Preferenze personali")
-sex = st.selectbox("Sesso", ["Male", "Female"])
-origin = st.selectbox("Paese di origine", sorted(df["country_of_birth"].unique()))
-
-st.markdown("#### 1. Cosa NON ti piace del tuo paese?")
-st.markdown("Seleziona gli aspetti del tuo paese attuale che vorresti migliorare trasferendoti. Più alto è il peso (0–10), più è importante per te allontanarti da quella caratteristica. Ad esempio: se senti che mancano opportunità di lavoro, seleziona 'Jobs' con un peso alto.")
-indici_da_migliorare = {}
-for ind in indici_disponibili:
-    col1, col2 = st.columns([2, 1])
+    col1, col2 = st.columns(2)
     with col1:
-        dislike = st.checkbox(f"{ind} ❌", key=f"dis_{ind}")
+        sex = st.selectbox(
+            "Select your gender",
+            ["Male", "Female"],
+            help="Your gender may influence preferences and migration motivations."
+        )
     with col2:
-        if dislike:
-            peso = st.slider(f"Peso {ind}", 0.0, 10.0, 5.0, 0.5, key=f"peso_dis_{ind}")
-            indici_da_migliorare[ind] = peso
+        origin = st.selectbox(
+            "Select your country of origin",
+            sorted(df["country_of_birth"].unique()),
+            help="The country you currently live in."
+        )
 
-st.markdown("#### 2. Cosa DESIDERI trovare nel nuovo paese?")
-st.markdown("Indica gli aspetti che cerchi attivamente nel nuovo paese, anche se non mancano necessariamente nel tuo. Seleziona ciò che ti attira, e assegna un peso più alto agli elementi più importanti per te. Ad esempio: vuoi un ambiente più sano o alta soddisfazione di vita? Seleziona 'Environment' o 'Life satisfaction'.")
-indici_desiderati = {}
-for ind in indici_disponibili:
-    col1, col2 = st.columns([2, 1])
-    with col1:
-        like = st.checkbox(f"{ind} ✅", key=f"des_{ind}")
-    with col2:
-        if like:
-            peso = st.slider(f"Peso {ind}", 0.0, 10.0, 5.0, 0.5, key=f"peso_des_{ind}")
-            indici_desiderati[ind] = peso
+    st.markdown("### ❌ What do you want to improve in your current country?")
+    st.caption("Select things you’d like to escape or improve and assign importance (0–10).")
+    indices_to_improve = {}
+    cols = st.columns(2)
+    for i, ind in enumerate(indicators):
+        with cols[i % 2]:
+            if st.checkbox(f"{ind}", key=f"imp_{ind}"):
+                weight = st.slider(f"Weight for {ind}", 0.0, 10.0, 5.0, 0.5, key=f"w_imp_{ind}")
+                indices_to_improve[ind] = weight
 
-# === RACCOMANDAZIONE ===
-if st.button("🔍 Scopri i paesi migliori"):
-    def consiglia_paesi(df, origin, sex, indici_da_migliorare, indici_desiderati, top_n=5):
+    st.markdown("### ✅ What do you desire in a new country?")
+    st.caption("Select aspects that matter to you even if they're already good at home.")
+    indices_desired = {}
+    cols2 = st.columns(2)
+    for i, ind in enumerate(indicators):
+        with cols2[i % 2]:
+            if st.checkbox(f"{ind}", key=f"des_{ind}"):
+                weight = st.slider(f"Weight for {ind}", 0.0, 10.0, 5.0, 0.5, key=f"w_des_{ind}")
+                indices_desired[ind] = weight
+
+    submitted = st.form_submit_button("🔍 Discover best countries")
+
+# === RECOMMENDATION ENGINE ===
+if submitted:
+    def recommend_countries(df, origin, sex, to_improve, desired, top_n=5):
         df_user = df[(df["country_of_birth"] == origin) & (df["sex"] == sex)].copy()
 
-        def calcola_punteggio(r):
+        def compute_score(r):
             score = 0
-            motivi = []
-            for ind, peso in indici_da_migliorare.items():
+            reasons = []
+            for ind, weight in to_improve.items():
                 delta = r[f"dest_{ind}"] - r[f"origin_{ind}"]
-                contrib = delta * peso
-                score += contrib
-                motivi.append(f"{ind} {'↑' if delta>0 else '↓'} ({delta:.2f})")
-
-            for ind, peso in indici_desiderati.items():
+                score += delta * weight
+                reasons.append(f"{ind} {'↑' if delta>0 else '↓'} ({delta:.2f})")
+            for ind, weight in desired.items():
                 val = r[f"dest_{ind}"]
                 delta = val - r[f"origin_{ind}"]
-                contrib = val * peso
-                score += contrib
-                motivi.append(f"{ind} {'↑' if delta>0 else '↓'} ({delta:.2f})")
+                score += val * weight
+                reasons.append(f"{ind} {'↑' if delta>0 else '↓'} ({delta:.2f})")
+            return pd.Series({"score": score, "reasons": ", ".join(reasons)})
 
-            return pd.Series({"score": score, "motivi": ", ".join(motivi)})
+        df_user[["score", "reasons"]] = df_user.apply(compute_score, axis=1)
+        df_user["score_norm"] = (
+            MinMaxScaler().fit_transform(df_user[["score"]])
+            if df_user["score"].nunique() > 1 else 1.0
+        )
 
-        df_user[["score", "motivi"]] = df_user.apply(calcola_punteggio, axis=1)
-
-        if df_user["score"].nunique() > 1:
-            df_user["score_norm"] = MinMaxScaler().fit_transform(df_user[["score"]])
-        else:
-            df_user["score_norm"] = 1.0
-
-        if indici_desiderati:
-            profilo = np.array([peso for peso in indici_desiderati.values()]).reshape(1, -1)
-            indici_sim = [f"dest_{k}" for k in indici_desiderati.keys()]
-            matrice_dest = df_user[indici_sim].values
-            sim = cosine_similarity(profilo, matrice_dest)[0]
+        if desired:
+            profile = np.array(list(desired.values())).reshape(1, -1)
+            sim_indices = [f"dest_{k}" for k in desired.keys()]
+            sim_matrix = df_user[sim_indices].values
+            sim = cosine_similarity(profile, sim_matrix)[0]
         else:
             sim = np.zeros(len(df_user))
 
         df_user["similarity"] = sim
-        df_user["score_finale"] = 0.5 * df_user["score_norm"] + 0.5 * df_user["similarity"]
+        df_user["final_score"] = 0.5 * df_user["score_norm"] + 0.5 * df_user["similarity"]
 
-        ranking = (
+        top_countries = (
             df_user.groupby("country_of_destination")
-            .agg({"score_finale": "mean", "motivi": lambda x: x.mode().iloc[0] if not x.mode().empty else x.iloc[0]})
-            .sort_values("score_finale", ascending=False)
+            .agg({
+                "final_score": "mean",
+                "reasons": lambda x: x.mode().iloc[0] if not x.mode().empty else x.iloc[0]
+            })
+            .sort_values("final_score", ascending=False)
             .reset_index()
             .head(top_n)
         )
-        return ranking
+        return top_countries
 
-    risultato = consiglia_paesi(df, origin, sex, indici_da_migliorare, indici_desiderati)
-    st.subheader("🔝 Paesi consigliati")
-    st.dataframe(risultato)
+    result = recommend_countries(df, origin, sex, indices_to_improve, indices_desired)
+    st.subheader("🔝 Recommended Countries")
+    st.dataframe(result)
     fig, ax = plt.subplots(figsize=(8, 5))
-    ax.barh(risultato["country_of_destination"], risultato["score_finale"], color="teal")
-    ax.set_xlabel("Punteggio finale combinato")
-    ax.set_title("Top Paesi Raccomandati")
+    ax.barh(result["country_of_destination"], result["final_score"], color="teal")
+    ax.set_xlabel("Final combined score")
+    ax.set_title("Top Recommended Countries")
     ax.invert_yaxis()
     st.pyplot(fig)
 
-# === CONFRONTO DUE PAESI ===
-st.subheader("📊 Confronta due Paesi")
-paese1 = st.selectbox("Paese 1", sorted(df["country_of_destination"].unique()), key="p1")
-paese2 = st.selectbox("Paese 2", sorted(df["country_of_destination"].unique()), key="p2")
-indici_selezionati = st.multiselect("Scegli gli indici da confrontare", indici_disponibili, default=["Jobs", "Education"])
+# === COMPARE COUNTRIES ===
+st.subheader("📊 Compare two Countries")
+p1 = st.selectbox("Country 1", sorted(df["country_of_destination"].unique()), key="p1")
+p2 = st.selectbox("Country 2", sorted(df["country_of_destination"].unique()), key="p2")
+selected_ind = st.multiselect("Select indicators to compare", indicators, default=["Jobs", "Education"])
 
-if indici_selezionati:
-    medie1 = df[df["country_of_destination"] == paese1][[f"dest_{i}" for i in indici_selezionati]].mean()
-    medie2 = df[df["country_of_destination"] == paese2][[f"dest_{i}" for i in indici_selezionati]].mean()
-    x = range(len(indici_selezionati))
+if selected_ind:
+    avg1 = df[df["country_of_destination"] == p1][[f"dest_{i}" for i in selected_ind]].mean()
+    avg2 = df[df["country_of_destination"] == p2][[f"dest_{i}" for i in selected_ind]].mean()
+    x = range(len(selected_ind))
     fig, ax = plt.subplots(figsize=(10, 5))
-    ax.bar([i - 0.2 for i in x], medie1.values, width=0.4, label=paese1)
-    ax.bar([i + 0.2 for i in x], medie2.values, width=0.4, label=paese2)
+    ax.bar([i - 0.2 for i in x], avg1.values, width=0.4, label=p1)
+    ax.bar([i + 0.2 for i in x], avg2.values, width=0.4, label=p2)
     ax.set_xticks(x)
-    ax.set_xticklabels(indici_selezionati, rotation=45, ha="right")
+    ax.set_xticklabels(selected_ind, rotation=45, ha="right")
     ax.legend()
     st.pyplot(fig)
 
 # === HASSE DIAGRAM ===
-st.subheader("📈 Visualizza relazioni tra Paesi")
-with st.expander("Mostra diagramma Hasse personalizzato"):
+st.subheader("📈 Country Relationship Diagram")
+with st.expander("Customize and view Hasse diagram"):
     dest_cols = [col for col in df.columns if col.startswith("dest_")]
-    var1 = st.selectbox("Variabile 1", dest_cols)
-    var2 = st.selectbox("Variabile 2", dest_cols)
-    var3 = st.selectbox("Variabile 3", dest_cols)
-    color_metric = st.selectbox("Colora per", dest_cols)
+    var1 = st.selectbox("Variable 1", dest_cols)
+    var2 = st.selectbox("Variable 2", dest_cols)
+    var3 = st.selectbox("Variable 3", dest_cols)
+    color_metric = st.selectbox("Node color based on", dest_cols)
 
     def dominates(a, b):
         return all(a >= b) and any(a > b)
 
-    if st.button("📌 Mostra Hasse"):
-        st.info("Costruzione grafo...")
+    if st.button("📌 Show Hasse Diagram"):
         selected = [var1, var2, var3]
         df_grouped = df.groupby("country_of_destination")[selected + [color_metric]].mean()
         G = nx.DiGraph()
         countries = df_grouped.index.tolist()
+
         for i in countries:
             for j in countries:
-                if i == j: continue
-                a, b = df_grouped.loc[i, selected], df_grouped.loc[j, selected]
+                if i == j:
+                    continue
+                a = df_grouped.loc[i, selected]
+                b = df_grouped.loc[j, selected]
                 if dominates(a, b):
-                    intermedi = [k for k in countries if dominates(df_grouped.loc[i, selected], df_grouped.loc[k, selected]) and dominates(df_grouped.loc[k, selected], df_grouped.loc[j, selected]) and k != i and k != j]
-                    if not intermedi:
+                    intermediates = [k for k in countries if dominates(df_grouped.loc[i, selected], df_grouped.loc[k, selected])
+                                     and dominates(df_grouped.loc[k, selected], df_grouped.loc[j, selected])
+                                     and k != i and k != j]
+                    if not intermediates:
                         G.add_edge(i, j)
 
         pos = nx.spring_layout(G, seed=42)
@@ -186,9 +181,11 @@ with st.expander("Mostra diagramma Hasse personalizzato"):
         node_sizes = [800 + 400 * G.out_degree(n) for n in G.nodes()]
 
         fig, ax = plt.subplots(figsize=(14, 10))
-        nx.draw_networkx_nodes(G, pos, node_color=node_colors, node_size=node_sizes, cmap=cmap, ax=ax, edgecolors='black')
+        nx.draw_networkx_nodes(G, pos, node_color=node_colors, node_size=node_sizes,
+                               cmap=cmap, ax=ax, edgecolors='black')
         nx.draw_networkx_labels(G, pos, font_size=8, ax=ax)
-        nx.draw_networkx_edges(G, pos, ax=ax, arrows=True, arrowstyle='-|>', arrowsize=20, edge_color='gray')
+        nx.draw_networkx_edges(G, pos, ax=ax, arrows=True,
+                               arrowstyle='-|>', arrowsize=20, edge_color='gray')
 
         sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
         sm.set_array([])
