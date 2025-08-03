@@ -184,57 +184,63 @@ if selected_ind:
 # === HASSE DIAGRAM ===
 st.subheader("📈 Hasse Diagram of Destinations")
 
-# Crea il grafo solo se la tabella non è vuota
 if not df.empty:
-    color_metric = "Safety"  # Indicatore usato per colorare
+    color_metric = "Safety"  # Indicatore per colorare i nodi
     df_grouped = df.groupby("country_of_destination").mean(numeric_only=True)
 
-    # Seleziona solo le colonne degli indicatori "dest_*"
+    # Indicatori disponibili
     indicator_cols = [col for col in df_grouped.columns if col.startswith("dest_")]
-    df_indicators = df_grouped[indicator_cols].copy()
+    df_indicators = df_grouped[indicator_cols]
 
+    # Calcola uno score totale (può essere personalizzato)
+    score = df_indicators.sum(axis=1)
+    df_grouped["score"] = score
+
+    # Costruisci grafo con archi da migliori a peggiori (relazione di dominanza)
     G = nx.DiGraph()
-
-    # Aggiungi nodi
     for country in df_grouped.index:
-        G.add_node(country, label=country)
+        G.add_node(country, label=country, score=df_grouped.loc[country, "score"])
 
-    # Aggiungi archi solo se b è migliore di a in tutte le variabili
     for a in df_grouped.index:
         for b in df_grouped.index:
             if a != b:
                 a_vals = df_indicators.loc[a]
                 b_vals = df_indicators.loc[b]
-                if all(b_vals >= a_vals) and any(b_vals > a_vals):
+                # A è migliore di B su tutti gli indicatori → disegna freccia A → B
+                if all(a_vals >= b_vals) and any(a_vals > b_vals):
                     G.add_edge(a, b)
 
-    # Layout
-    pos = nx.spring_layout(G, seed=42)
+    # Layout top-down (migliori in alto) usando Graphviz DOT
+    try:
+        from networkx.drawing.nx_agraph import graphviz_layout
+        pos = graphviz_layout(G, prog="dot")  # top-down layout
+    except ImportError:
+        pos = nx.spring_layout(G, seed=42)
+        st.warning("Graphviz non disponibile, uso layout alternativo.")
 
-    # Colori e dimensioni
+    # Colori e dimensioni dei nodi
     color_vals = df_grouped[f"dest_{color_metric}"].to_dict()
     node_colors = [color_vals.get(n, 0.5) for n in G.nodes()]
     cmap = plt.cm.plasma
     norm = plt.Normalize(min(node_colors), max(node_colors))
     node_sizes = [500 + 300 * G.out_degree(n) for n in G.nodes()]
 
-    # Disegna il grafo
-    fig, ax = plt.subplots(figsize=(12, 10))
+    # Disegna grafo
+    fig, ax = plt.subplots(figsize=(12, 12))
     nx.draw_networkx_nodes(G, pos, node_color=node_colors, node_size=node_sizes,
                            cmap=cmap, ax=ax, edgecolors='black')
-    nx.draw_networkx_labels(G, pos, font_size=8, ax=ax)
+    nx.draw_networkx_labels(G, pos, font_size=9, ax=ax)
     nx.draw_networkx_edges(G, pos, ax=ax, arrows=True,
-                           arrowstyle='-|>', arrowsize=12, edge_color='gray')
+                           arrowstyle='-|>', arrowsize=10, edge_color='gray')
 
     sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
     sm.set_array([])
     cbar = plt.colorbar(sm, ax=ax, shrink=0.6)
     cbar.set_label(f"dest_{color_metric}")
 
-    plt.title("Hasse Diagram (Only Dominance Relations)", fontsize=16, pad=20)
+    plt.title("Hasse Diagram: Better → Worse", fontsize=16)
     plt.axis("off")
-    plt.tight_layout(pad=2)
     st.pyplot(fig)
+
 else:
     st.warning("No data available to build the diagram.")
-
