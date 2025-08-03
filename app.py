@@ -183,12 +183,23 @@ if selected_ind:
 
 # === HASSE DIAGRAM ===
 st.subheader("📈 Country Relationship Diagram")
+
+st.markdown("""
+This section displays a **Hasse diagram** that visualizes dominance relationships between countries based on multiple selected indicators.  
+- Each **node** represents a country.  
+- An **arrow from A to B** means country A dominates country B (i.e., performs better in at least one selected variable and not worse in the others).  
+- The **node color** reflects the value of a fourth variable (e.g., Safety).
+""")
+
 with st.expander("Customize and view Hasse diagram"):
     dest_cols = [col for col in df.columns if col.startswith("dest_")]
-    var1 = st.selectbox("Variable 1", dest_cols)
-    var2 = st.selectbox("Variable 2", dest_cols)
-    var3 = st.selectbox("Variable 3", dest_cols)
-    color_metric = st.selectbox("Node color based on", dest_cols)
+
+    # Set default variables
+    default_vars = ["dest_Education", "dest_Jobs", "dest_Income", "dest_Safety"]
+    var1 = st.selectbox("Variable 1", dest_cols, index=dest_cols.index(default_vars[0]))
+    var2 = st.selectbox("Variable 2", dest_cols, index=dest_cols.index(default_vars[1]))
+    var3 = st.selectbox("Variable 3", dest_cols, index=dest_cols.index(default_vars[2]))
+    color_metric = st.selectbox("Node color based on", dest_cols, index=dest_cols.index(default_vars[3]))
 
     def dominates(a, b):
         return all(a >= b) and any(a > b)
@@ -206,9 +217,11 @@ with st.expander("Customize and view Hasse diagram"):
                 a = df_grouped.loc[i, selected]
                 b = df_grouped.loc[j, selected]
                 if dominates(a, b):
-                    intermediates = [k for k in countries if dominates(df_grouped.loc[i, selected], df_grouped.loc[k, selected])
-                                     and dominates(df_grouped.loc[k, selected], df_grouped.loc[j, selected])
-                                     and k != i and k != j]
+                    intermediates = [
+                        k for k in countries if dominates(df_grouped.loc[i, selected], df_grouped.loc[k, selected])
+                        and dominates(df_grouped.loc[k, selected], df_grouped.loc[j, selected])
+                        and k != i and k != j
+                    ]
                     if not intermediates:
                         G.add_edge(i, j)
 
