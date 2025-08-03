@@ -12,7 +12,7 @@ df = pd.read_csv("dataset_final.csv")
 st.set_page_config(page_title="GoWhere - Brain Drain Analyzer", layout="centered")
 
 # === TITLE ===
-st.title("🌍 GoWhere - Brain Drain Analyzer")
+st.title("🌍 22 GoWhere - Brain Drain Analyzer")
 st.markdown("""
 This tool helps you find the best countries based on your personal preferences,
 comparing key factors like jobs, safety, health, and more. Answer a few questions
