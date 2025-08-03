@@ -157,11 +157,14 @@ if st.button("🔍 Discover best countries"):
         ax.invert_yaxis()
         st.pyplot(fig)
 
-
-
-
 # === COMPARE COUNTRIES ===
 st.subheader("📊 Compare two Countries")
+
+st.markdown(
+    "Use the tool below to visually compare how two countries perform on selected key indicators. "
+    "This can help you understand the relative strengths and weaknesses of each destination based on your priorities."
+)
+
 p1 = st.selectbox("Country 1", sorted(df["country_of_destination"].unique()), key="p1")
 p2 = st.selectbox("Country 2", sorted(df["country_of_destination"].unique()), key="p2")
 selected_ind = st.multiselect("Select indicators to compare", indicators, default=["Jobs", "Education"])
