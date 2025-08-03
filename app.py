@@ -123,65 +123,65 @@ if st.button("🔍 Discover best countries"):
 
     # === DISPLAY TABULAR RESULTS (with word wrapping) ===
     if not result.empty:
-    st.markdown("### 🏆 Recommended Countries")
-    st.markdown("""
-    Here are the countries that best match your preferences. You can review the reasoning behind the score for each destination.
-    """)
-
-    result_html = """
-    <style>
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            table-layout: auto;
-        }
-        th, td {
-            border: 1px solid #DDD;
-            padding: 8px;
-            text-align: left;
-            vertical-align: top;
-        }
-        th {
-            background-color: #f2f2f2;
-        }
-        td {
-            white-space: pre-wrap;
-            word-wrap: break-word;
-        }
-    </style>
-    <table>
-    <thead>
-    <tr>
-        <th>Destination</th>
-        <th>Final Score</th>
-        <th>Reasons</th>
-    </tr>
-    </thead>
-    <tbody>
-    """
-
-    for _, row in result.iterrows():
-        reasons_formatted = "<br>".join(row["reasons"].split(", "))
-        result_html += f"""
+        st.markdown("### 🏆 Recommended Countries")
+        st.markdown("""
+        Here are the countries that best match your preferences. You can review the reasoning behind the score for each destination.
+        """)
+    
+        result_html = """
+        <style>
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                table-layout: auto;
+            }
+            th, td {
+                border: 1px solid #DDD;
+                padding: 8px;
+                text-align: left;
+                vertical-align: top;
+            }
+            th {
+                background-color: #f2f2f2;
+            }
+            td {
+                white-space: pre-wrap;
+                word-wrap: break-word;
+            }
+        </style>
+        <table>
+        <thead>
         <tr>
-            <td>{row['country_of_destination']}</td>
-            <td>{row['final_score']:.4f}</td>
-            <td>{reasons_formatted}</td>
+            <th>Destination</th>
+            <th>Final Score</th>
+            <th>Reasons</th>
         </tr>
+        </thead>
+        <tbody>
         """
-
-    result_html += "</tbody></table>"
-
-    st.markdown(result_html, unsafe_allow_html=True)
-
-    st.markdown("### 📊 Visualization of top scores")
-    st.markdown("This chart shows how strongly each recommended country matches your personal preferences.")
-    fig, ax = plt.subplots(figsize=(5, 3.5))
-    ax.barh(result["country_of_destination"], result["final_score"], color="teal", height=0.4)
-    ax.set_xlabel("Final combined score")
-    ax.set_title("Top Recommended Countries")
-    ax.invert_yaxis()
-    st.pyplot(fig)
+    
+        for _, row in result.iterrows():
+            reasons_formatted = "<br>".join(row["reasons"].split(", "))
+            result_html += f"""
+            <tr>
+                <td>{row['country_of_destination']}</td>
+                <td>{row['final_score']:.4f}</td>
+                <td>{reasons_formatted}</td>
+            </tr>
+            """
+    
+        result_html += "</tbody></table>"
+    
+        st.markdown(result_html, unsafe_allow_html=True)
+    
+        st.markdown("### 📊 Visualization of top scores")
+        st.markdown("This chart shows how strongly each recommended country matches your personal preferences.")
+        fig, ax = plt.subplots(figsize=(5, 3.5))
+        ax.barh(result["country_of_destination"], result["final_score"], color="teal", height=0.4)
+        ax.set_xlabel("Final combined score")
+        ax.set_title("Top Recommended Countries")
+        ax.invert_yaxis()
+        st.pyplot(fig)
 
 
 
