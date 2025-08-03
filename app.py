@@ -123,20 +123,21 @@ if st.button("🔍 Discover best countries"):
 
     st.subheader("🔝 Recommended Countries")
     st.markdown("Here are the countries that best match your preferences. You can review the reasoning behind the score for each destination.")
-    # Wrap text in 'reasons' column
-    result_display = result.copy()
-    result_display["reasons"] = result_display["reasons"].str.replace(r",\s*", ",\n", regex=True)
-    # Set max height and allow wrapping
-    st.dataframe(result_display, use_container_width=True, height=400)
-
+    
+    # Display results in formatted text instead of dataframe
+    for i, row in result.iterrows():
+        st.markdown(f"**{i+1}. {row['country_of_destination']}** — Score: `{row['final_score']:.4f}`  \n**Reasons:** {row['reasons'].replace(',', '<br>')}", unsafe_allow_html=True)
+    
+    # Visualization (resized and clean)
     st.markdown("### 📊 Visualization of top scores")
     st.markdown("This chart shows how strongly each recommended country matches your personal preferences.")
-    fig, ax = plt.subplots(figsize=(6, 3.5))
+    fig, ax = plt.subplots(figsize=(6, 3.5))  # Smaller figure
     ax.barh(result["country_of_destination"], result["final_score"], color="teal", height=0.4)
     ax.set_xlabel("Final combined score")
     ax.set_title("Top Recommended Countries")
     ax.invert_yaxis()
     st.pyplot(fig)
+
 
 # === COMPARE COUNTRIES ===
 st.subheader("📊 Compare two Countries")
