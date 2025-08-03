@@ -186,9 +186,10 @@ from networkx.drawing.nx_agraph import graphviz_layout
 
 st.subheader("📈 Country Relationship Diagram")
 st.markdown("""
-This Hasse diagram shows the dominance relationships between countries based on selected indicators.  
-A country dominates another if it performs better in all selected metrics, and strictly better in at least one.  
-You can customize which indicators are used and how node colors reflect performance.
+This Hasse diagram shows dominance relationships between countries based on selected indicators.  
+- Each **node** is a country.
+- A **directed edge (A → B)** means A dominates B across selected metrics.
+- Node **color represents the value** of a fourth indicator (e.g., Safety).
 """)
 
 with st.expander("Customize and view Hasse diagram"):
@@ -221,35 +222,27 @@ with st.expander("Customize and view Hasse diagram"):
                     if not intermediates:
                         G.add_edge(i, j)
 
-        # 📐 Better layout
-        import pygraphviz
-        from networkx.drawing.nx_agraph import graphviz_layout
+        pos = graphviz_layout(G, prog='dot')  # layout gerarchico verticale
 
-        pos = graphviz_layout(G, prog='dot')
-
-
-        # 🎨 Node coloring
         color_vals = df_grouped[color_metric].to_dict()
         node_colors = [color_vals.get(n, 0.5) for n in G.nodes()]
         cmap = plt.cm.plasma
         norm = plt.Normalize(min(node_colors), max(node_colors))
-
-        # 🔠 Node size and labels
         node_sizes = [500 + 300 * G.out_degree(n) for n in G.nodes()]
+
         fig, ax = plt.subplots(figsize=(12, 10))
         nx.draw_networkx_nodes(G, pos, node_color=node_colors, node_size=node_sizes,
                                cmap=cmap, ax=ax, edgecolors='black')
-        nx.draw_networkx_labels(G, pos, font_size=7, ax=ax)
+        nx.draw_networkx_labels(G, pos, font_size=8, ax=ax)
         nx.draw_networkx_edges(G, pos, ax=ax, arrows=True,
                                arrowstyle='-|>', arrowsize=12, edge_color='gray')
 
-        # 🎨 Colorbar
         sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
         sm.set_array([])
         cbar = plt.colorbar(sm, ax=ax, shrink=0.6)
         cbar.set_label(color_metric)
 
-        plt.title("Hasse Diagram", fontsize=14, pad=20)
+        plt.title("Hasse Diagram", fontsize=16, pad=20)
         plt.axis("off")
         plt.tight_layout(pad=2)
         st.pyplot(fig)
