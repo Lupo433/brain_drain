@@ -181,43 +181,54 @@ if selected_ind:
     ax.legend()
     st.pyplot(fig)
 
-# === DESTINATION BUBBLE CHART ===
-st.subheader("🟢 Destination Bubble Chart")
 
-with st.expander("Customize chart indicators"):
-    col1, col2, col3, col4 = st.columns(4)
-    with col1:
-        x_var = st.selectbox("X-axis", indicators, index=0)
-    with col2:
-        y_var = st.selectbox("Y-axis", indicators, index=1)
-    with col3:
-        size_var = st.selectbox("Bubble size", indicators, index=2)
-    with col4:
-        color_var = st.selectbox("Color", indicators, index=3)
+import plotly.express as px
 
-# Raggruppa i dati per paese di destinazione
+# === GEOGRAPHIC HEATMAP (OECD Only) ===
+st.subheader("🗺️ Geographic Heatmap of OECD Countries")
+
+# Lista ISO-3 dei paesi membri OCSE
+oecd_countries = [
+    "AUS", "AUT", "BEL", "CAN", "CHE", "CHL", "COL", "CZE", "DNK", "EST",
+    "FIN", "FRA", "DEU", "GRC", "HUN", "ISL", "IRL", "ISR", "ITA", "JPN",
+    "KOR", "LVA", "LTU", "LUX", "MEX", "NLD", "NZL", "NOR", "POL", "PRT",
+    "SVK", "SVN", "ESP", "SWE", "TUR", "GBR", "USA"
+]
+
+# Seleziona la variabile per la colorazione e altre per il tooltip
+st.markdown("Seleziona la variabile principale per colorare la mappa e altre da mostrare nel tooltip.")
+all_vars = [f"dest_{ind}" for ind in indicators]
+color_var = st.selectbox("🌡️ Variabile da colorare", all_vars, index=all_vars.index("dest_Safety"))
+tooltip_vars = st.multiselect("🧾 Variabili nel tooltip", all_vars, default=["dest_Jobs", "dest_Income", "dest_Health"])
+
+# Crea il DataFrame medio per paese e filtra i paesi OECD
 df_grouped = df.groupby("country_of_destination").mean(numeric_only=True).reset_index()
+df_grouped = df_grouped[df_grouped["country_of_destination"].isin(oecd_countries)]
+df_grouped["iso_alpha"] = df_grouped["country_of_destination"]
 
-# Costruisci figure
-fig, ax = plt.subplots(figsize=(10, 6))
+# Costruzione del tooltip
+df_grouped["tooltip"] = df_grouped.apply(
+    lambda row: "<br>".join([f"{v.replace('dest_', '')}: {row[v]:.2f}" for v in tooltip_vars]),
+    axis=1
+)
 
-x = df_grouped[f"dest_{x_var}"]
-y = df_grouped[f"dest_{y_var}"]
-sizes = df_grouped[f"dest_{size_var}"] * 300  # Scaling factor
-colors = df_grouped[f"dest_{color_var}"]
+# Creazione mappa Plotly
+fig = px.choropleth(
+    df_grouped,
+    locations="iso_alpha",
+    locationmode="ISO-3",
+    color=color_var,
+    hover_name="country_of_destination",
+    hover_data={"tooltip": True, "iso_alpha": False, color_var: True},
+    color_continuous_scale="Blues",
+    title=f"{color_var.replace('dest_', '')} across OECD Countries"
+)
 
-scatter = ax.scatter(x, y, s=sizes, c=colors, cmap="plasma", alpha=0.8, edgecolors="black")
+fig.update_traces(hovertemplate="<b>%{hovertext}</b><br>%{customdata[0]}")
+fig.update_layout(
+    margin={"r": 0, "t": 40, "l": 0, "b": 0},
+    geo=dict(showframe=False, showcoastlines=True, projection_type='natural earth'),
+)
 
-# Aggiungi etichette
-for i, row in df_grouped.iterrows():
-    ax.text(row[f"dest_{x_var}"], row[f"dest_{y_var}"], row["country_of_destination"], fontsize=8, ha='center', va='center')
+st.plotly_chart(fig, use_container_width=True)
 
-ax.set_xlabel(x_var)
-ax.set_ylabel(y_var)
-ax.set_title("Destination Countries Bubble Chart", fontsize=14)
-
-# Colormap
-cbar = plt.colorbar(scatter, ax=ax)
-cbar.set_label(f"{color_var}")
-
-st.pyplot(fig)
