@@ -128,13 +128,19 @@ if st.button("🔍 Discover best countries"):
         Here are the countries that best match your preferences. You can review the reasoning behind the score for each destination.
         """)
     
-        # Prepara la colonna 'reasons' per andare a capo
-        result_display = result.copy()
-        result_display["reasons"] = result_display["reasons"].str.replace(", ", "\n")
+        for idx, row in result.iterrows():
+            country = row['country_of_destination']
+            score = row['final_score']
+            reasons = row["reasons"].split(", ")
     
-        # Mostra tabella con wrapping automatico
-        st.dataframe(result_display, use_container_width=True)
-
+            # Disegna una card semplice
+            with st.container():
+                st.markdown(f"### {idx+1}. {country} — Score: `{score:.4f}`")
+                st.markdown("<ul style='margin-left: 20px;'>", unsafe_allow_html=True)
+                for r in reasons:
+                    st.markdown(f"<li>{r}</li>", unsafe_allow_html=True)
+                st.markdown("</ul>", unsafe_allow_html=True)
+                st.markdown("---")
     
         st.markdown("### 📊 Visualization of top scores")
         st.markdown("This chart shows how strongly each recommended country matches your personal preferences.")
