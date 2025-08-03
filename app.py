@@ -125,13 +125,57 @@ if st.button("🔍 Discover best countries"):
     st.subheader("🔝 Recommended Countries")
     st.markdown("Here are the countries that best match your preferences. You can review the reasoning behind the score for each destination.")
     
-    # Wrap 'reasons' in a nicer, multiline format
-    result_display = result.copy()
-    result_display["reasons"] = result_display["reasons"].str.replace(", ", "\n")
+    # Build HTML table manually
+    table_html = """
+    <style>
+        .scroll-table {
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        th, td {
+            text-align: left;
+            padding: 8px;
+            border-bottom: 1px solid #ddd;
+            vertical-align: top;
+            white-space: pre-line;
+        }
+        th {
+            background-color: #f0f0f0;
+        }
+    </style>
+    <div class="scroll-table">
+        <table>
+            <thead>
+                <tr>
+                    <th>Destination</th>
+                    <th>Final Score</th>
+                    <th>Reasons</th>
+                </tr>
+            </thead>
+            <tbody>
+    """
     
-    # Show as dataframe with container width
-    st.dataframe(result_display, use_container_width=True)
-
+    for _, row in result.iterrows():
+        reasons = row["reasons"].replace(", ", "<br>")
+        table_html += f"""
+            <tr>
+                <td>{row['country_of_destination']}</td>
+                <td>{row['final_score']:.4f}</td>
+                <td>{reasons}</td>
+            </tr>
+        """
+    
+    table_html += """
+            </tbody>
+        </table>
+    </div>
+    """
+    
+    st.markdown(table_html, unsafe_allow_html=True)
     
     # Visualization (resized and clean)
     st.markdown("### 📊 Visualization of top scores")
