@@ -19,21 +19,37 @@ comparing key factors like jobs, safety, health, and more. Answer a few question
 to get personalized recommendations and visualize the best destinations.
 """)
 
-# === INDICATORS ===
+# === INDICATORS + TOOLTIPS ===
 indicators = [
     "Education", "Jobs", "Income", "Safety", "Health", "Environment",
     "Civic engagement", "Accessiblity to services", "Housing",
     "Community", "Life satisfaction", "PR rating", "CL rating"
 ]
 
+tooltips = {
+    "Education": "Quality of the education system.",
+    "Jobs": "Employment opportunities and job security.",
+    "Income": "Average income levels and financial well-being.",
+    "Safety": "Personal and societal safety.",
+    "Health": "Access to and quality of the healthcare system.",
+    "Environment": "Environmental quality and sustainability.",
+    "Civic engagement": "Citizen participation in civic life.",
+    "Accessiblity to services": "Ease of access to public and private services.",
+    "Housing": "Affordability and quality of housing.",
+    "Community": "Social cohesion and sense of belonging.",
+    "Life satisfaction": "Overall life satisfaction of the population.",
+    "PR rating": "Political rights and freedom.",
+    "CL rating": "Civil liberties and personal freedoms."
+}
+
 # === USER PREFERENCES ===
 st.subheader("🧭 Customize your preferences")
 
 col1, col2 = st.columns(2)
 with col1:
-    sex = st.selectbox("Select your gender", ["Male", "Female"])
+    sex = st.selectbox("Select your gender", ["Male", "Female"], help="Your gender may influence preferences and migration motivations.")
 with col2:
-    origin = st.selectbox("Select your country of origin", sorted(df["country_of_birth"].unique()))
+    origin = st.selectbox("Select your country of origin", sorted(df["country_of_birth"].unique()), help="Your current country of residence.")
 
 st.markdown("### ❌ What do you want to improve in your current country?")
 st.caption("Select things you’d like to escape or improve and assign importance (0–10).")
@@ -41,7 +57,7 @@ indices_to_improve = {}
 cols = st.columns(2)
 for i, ind in enumerate(indicators):
     with cols[i % 2]:
-        if st.checkbox(f"{ind}", key=f"imp_{ind}"):
+        if st.checkbox(f"{ind}", key=f"imp_{ind}", help=tooltips[ind]):
             weight = st.slider(f"Weight for {ind}", 0.0, 10.0, 5.0, 0.5, key=f"w_imp_{ind}")
             indices_to_improve[ind] = weight
 
@@ -51,7 +67,7 @@ indices_desired = {}
 cols2 = st.columns(2)
 for i, ind in enumerate(indicators):
     with cols2[i % 2]:
-        if st.checkbox(f"{ind}", key=f"des_{ind}"):
+        if st.checkbox(f"{ind}", key=f"des_{ind}", help=tooltips[ind]):
             weight = st.slider(f"Weight for {ind}", 0.0, 10.0, 5.0, 0.5, key=f"w_des_{ind}")
             indices_desired[ind] = weight
 
@@ -115,9 +131,9 @@ if st.button("🔍 Discover best countries"):
 
 # === COMPARE COUNTRIES ===
 st.subheader("📊 Compare two Countries")
-p1 = st.selectbox("Country 1", sorted(df["country_of_destination"].unique()), key="p1")
-p2 = st.selectbox("Country 2", sorted(df["country_of_destination"].unique()), key="p2")
-selected_ind = st.multiselect("Select indicators to compare", indicators, default=["Jobs", "Education"])
+p1 = st.selectbox("Country 1", sorted(df["country_of_destination"].unique()), key="p1", help="Select the first destination country to compare.")
+p2 = st.selectbox("Country 2", sorted(df["country_of_destination"].unique()), key="p2", help="Select the second destination country to compare.")
+selected_ind = st.multiselect("Select indicators to compare", indicators, default=["Jobs", "Education"], help="Choose indicators you want to visualize in the comparison graph.")
 
 if selected_ind:
     avg1 = df[df["country_of_destination"] == p1][[f"dest_{i}" for i in selected_ind]].mean()
@@ -135,10 +151,10 @@ if selected_ind:
 st.subheader("📈 Country Relationship Diagram")
 with st.expander("Customize and view Hasse diagram"):
     dest_cols = [col for col in df.columns if col.startswith("dest_")]
-    var1 = st.selectbox("Variable 1", dest_cols)
-    var2 = st.selectbox("Variable 2", dest_cols)
-    var3 = st.selectbox("Variable 3", dest_cols)
-    color_metric = st.selectbox("Node color based on", dest_cols)
+    var1 = st.selectbox("Variable 1", dest_cols, help="First dimension for comparison.")
+    var2 = st.selectbox("Variable 2", dest_cols, help="Second dimension for comparison.")
+    var3 = st.selectbox("Variable 3", dest_cols, help="Third dimension for comparison.")
+    color_metric = st.selectbox("Node color based on", dest_cols, help="Indicator used to color the nodes.")
 
     def dominates(a, b):
         return all(a >= b) and any(a > b)
