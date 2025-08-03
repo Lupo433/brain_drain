@@ -182,7 +182,6 @@ if selected_ind:
     st.pyplot(fig)
 
 # === HASSE DIAGRAM ===
-import pygraphviz  # Assicurati che sia installato
 from networkx.drawing.nx_agraph import graphviz_layout
 
 st.subheader("📈 Country Relationship Diagram")
