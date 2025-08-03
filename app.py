@@ -123,10 +123,14 @@ if st.button("🔍 Discover best countries"):
 
     st.subheader("🔝 Recommended Countries")
     st.markdown("Here are the countries that best match your preferences. You can review the reasoning behind the score for each destination.")
-    st.dataframe(result, use_container_width=True)
+    # Wrap text in 'reasons' column
+    result_display = result.copy()
+    result_display["reasons"] = result_display["reasons"].str.replace(", ", "\n")
+
+    st.dataframe(result_display, use_container_width=True)
 
     st.markdown("### 📊 Visualization of top scores")
-    st.caption("This chart shows how strongly each recommended country matches your personal preferences.")
+    st.markdown("This chart shows how strongly each recommended country matches your personal preferences.")
     fig, ax = plt.subplots(figsize=(6, 3.5))
     ax.barh(result["country_of_destination"], result["final_score"], color="teal", height=0.4)
     ax.set_xlabel("Final combined score")
