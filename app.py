@@ -182,46 +182,67 @@ if selected_ind:
     st.pyplot(fig)
 
 # === HASSE DIAGRAM ===
-import streamlit as st
-import networkx as nx
+st.subheader("📈 Hasse Diagram of Destinations")
 
-def convert_graph_to_dot(G):
-    dot_str = "digraph G {\n"
-    for node in G.nodes:
-        label = G.nodes[node].get("label", node)
-        dot_str += f'    "{node}" [label="{label}"];\n'
-    for source, target in G.edges:
-        dot_str += f'    "{source}" -> "{target}";\n'
-    dot_str += "}"
-    return dot_str
+# Crea il grafo solo se la tabella non è vuota
+if not df.empty:
+    # Raggruppa il DataFrame per paese di destinazione e calcola la media degli indicatori
+    color_metric = "Safety"  # Puoi cambiare qui l'indicatore usato per colorare
+    df_grouped = df.groupby("country_of_destination").mean(numeric_only=True)
 
-# Esempio uso:
-# G = nx.DiGraph()
-# G.add_edge("ITA", "USA")
-# ...
-dot_data = convert_graph_to_dot(G)
-st.graphviz_chart(dot_data)
+    G = nx.DiGraph()
 
+    # Aggiungi nodi
+    for country in df_grouped.index:
+        G.add_node(country, label=country)
 
-color_vals = df_grouped[color_metric].to_dict()
-node_colors = [color_vals.get(n, 0.5) for n in G.nodes()]
-cmap = plt.cm.plasma
-norm = plt.Normalize(min(node_colors), max(node_colors))
-node_sizes = [500 + 300 * G.out_degree(n) for n in G.nodes()]
+    # Aggiungi archi arbitrari basati su confronto dell'indicatore scelto (per esempio, Safety)
+    for a in df_grouped.index:
+        for b in df_grouped.index:
+            if a != b and df_grouped.loc[a, f"dest_{color_metric}"] < df_grouped.loc[b, f"dest_{color_metric}"]:
+                G.add_edge(a, b)
 
-fig, ax = plt.subplots(figsize=(12, 10))
-nx.draw_networkx_nodes(G, pos, node_color=node_colors, node_size=node_sizes,
-                       cmap=cmap, ax=ax, edgecolors='black')
-nx.draw_networkx_labels(G, pos, font_size=8, ax=ax)
-nx.draw_networkx_edges(G, pos, ax=ax, arrows=True,
-                       arrowstyle='-|>', arrowsize=12, edge_color='gray')
+    # Layout
+    pos = nx.spring_layout(G, seed=42)
 
-sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
-sm.set_array([])
-cbar = plt.colorbar(sm, ax=ax, shrink=0.6)
-cbar.set_label(color_metric)
+    # Funzione per convertire grafo in DOT
+    def convert_graph_to_dot(G):
+        dot_str = "digraph G {\n"
+        for node in G.nodes:
+            label = G.nodes[node].get("label", node)
+            dot_str += f'    "{node}" [label="{label}"];\n'
+        for source, target in G.edges:
+            dot_str += f'    "{source}" -> "{target}";\n'
+        dot_str += "}"
+        return dot_str
 
-plt.title("Hasse Diagram", fontsize=16, pad=20)
-plt.axis("off")
-plt.tight_layout(pad=2)
-st.pyplot(fig)
+    # Visualizzazione con Graphviz
+    dot_data = convert_graph_to_dot(G)
+    st.graphviz_chart(dot_data)
+
+    # Visualizzazione con Matplotlib
+    color_vals = df_grouped[f"dest_{color_metric}"].to_dict()
+    node_colors = [color_vals.get(n, 0.5) for n in G.nodes()]
+    cmap = plt.cm.plasma
+    norm = plt.Normalize(min(node_colors), max(node_colors))
+    node_sizes = [500 + 300 * G.out_degree(n) for n in G.nodes()]
+
+    fig, ax = plt.subplots(figsize=(12, 10))
+    nx.draw_networkx_nodes(G, pos, node_color=node_colors, node_size=node_sizes,
+                           cmap=cmap, ax=ax, edgecolors='black')
+    nx.draw_networkx_labels(G, pos, font_size=8, ax=ax)
+    nx.draw_networkx_edges(G, pos, ax=ax, arrows=True,
+                           arrowstyle='-|>', arrowsize=12, edge_color='gray')
+
+    sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
+    sm.set_array([])
+    cbar = plt.colorbar(sm, ax=ax, shrink=0.6)
+    cbar.set_label(f"dest_{color_metric}")
+
+    plt.title("Hasse Diagram", fontsize=16, pad=20)
+    plt.axis("off")
+    plt.tight_layout(pad=2)
+    st.pyplot(fig)
+else:
+    st.warning("No data available to build the diagram.")
+
