@@ -3,3 +3,6 @@ pandas
 matplotlib
 networkx
 scikit-learn
+pygraphviz
+pydot
+graphviz
