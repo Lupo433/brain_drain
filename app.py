@@ -184,62 +184,57 @@ if selected_ind:
 # === HASSE DIAGRAM ===
 st.subheader("📈 Hasse Diagram of Destinations")
 
+# Crea il grafo solo se la tabella non è vuota
 if not df.empty:
-    color_metric = "Safety"  # Indicatore usato per i colori
+    color_metric = "Safety"  # Indicatore usato per colorare
     df_grouped = df.groupby("country_of_destination").mean(numeric_only=True)
+
+    # Seleziona solo le colonne degli indicatori "dest_*"
+    indicator_cols = [col for col in df_grouped.columns if col.startswith("dest_")]
+    df_indicators = df_grouped[indicator_cols].copy()
 
     G = nx.DiGraph()
 
+    # Aggiungi nodi
     for country in df_grouped.index:
         G.add_node(country, label=country)
 
+    # Aggiungi archi solo se b è migliore di a in tutte le variabili
     for a in df_grouped.index:
         for b in df_grouped.index:
-            if a != b and df_grouped.loc[a, f"dest_{color_metric}"] < df_grouped.loc[b, f"dest_{color_metric}"]:
-                G.add_edge(a, b)
+            if a != b:
+                a_vals = df_indicators.loc[a]
+                b_vals = df_indicators.loc[b]
+                if all(b_vals >= a_vals) and any(b_vals > a_vals):
+                    G.add_edge(a, b)
 
-    # Migliore layout: evita sovrapposizioni
-    pos = nx.kamada_kawai_layout(G)
+    # Layout
+    pos = nx.spring_layout(G, seed=42)
 
-    def convert_graph_to_dot(G):
-        dot_str = "digraph G {\n"
-        for node in G.nodes:
-            label = G.nodes[node].get("label", node)
-            dot_str += f'    "{node}" [label="{label}"];\n'
-        for source, target in G.edges:
-            dot_str += f'    "{source}" -> "{target}";\n'
-        dot_str += "}"
-        return dot_str
-
-    # Visualizzazione con Graphviz
-    dot_data = convert_graph_to_dot(G)
-    st.graphviz_chart(dot_data)
-
-    # Visualizzazione con Matplotlib
+    # Colori e dimensioni
     color_vals = df_grouped[f"dest_{color_metric}"].to_dict()
     node_colors = [color_vals.get(n, 0.5) for n in G.nodes()]
     cmap = plt.cm.plasma
     norm = plt.Normalize(min(node_colors), max(node_colors))
     node_sizes = [500 + 300 * G.out_degree(n) for n in G.nodes()]
 
+    # Disegna il grafo
     fig, ax = plt.subplots(figsize=(12, 10))
     nx.draw_networkx_nodes(G, pos, node_color=node_colors, node_size=node_sizes,
                            cmap=cmap, ax=ax, edgecolors='black')
     nx.draw_networkx_labels(G, pos, font_size=8, ax=ax)
-    nx.draw_networkx_edges(
-        G, pos, ax=ax, arrows=True,
-        arrowstyle='-|>', arrowsize=10,
-        edge_color='gray', connectionstyle="arc3,rad=0.2"
-    )
+    nx.draw_networkx_edges(G, pos, ax=ax, arrows=True,
+                           arrowstyle='-|>', arrowsize=12, edge_color='gray')
 
     sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
     sm.set_array([])
     cbar = plt.colorbar(sm, ax=ax, shrink=0.6)
     cbar.set_label(f"dest_{color_metric}")
 
-    plt.title("Hasse Diagram", fontsize=16, pad=20)
+    plt.title("Hasse Diagram (Only Dominance Relations)", fontsize=16, pad=20)
     plt.axis("off")
     plt.tight_layout(pad=2)
     st.pyplot(fig)
 else:
     st.warning("No data available to build the diagram.")
+
