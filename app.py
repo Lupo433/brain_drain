@@ -125,9 +125,9 @@ if st.button("🔍 Discover best countries"):
     st.markdown("Here are the countries that best match your preferences. You can review the reasoning behind the score for each destination.")
     # Wrap text in 'reasons' column
     result_display = result.copy()
-    result_display["reasons"] = result_display["reasons"].str.replace(", ", "\n")
-
-    st.dataframe(result_display, use_container_width=True)
+    result_display["reasons"] = result_display["reasons"].str.replace(r",\s*", ",\n", regex=True)
+    # Set max height and allow wrapping
+    st.dataframe(result_display, use_container_width=True, height=400)
 
     st.markdown("### 📊 Visualization of top scores")
     st.markdown("This chart shows how strongly each recommended country matches your personal preferences.")
