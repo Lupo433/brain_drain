@@ -132,15 +132,21 @@ if st.button("🔍 Discover best countries"):
             country = row['country_of_destination']
             score = row['final_score']
             reasons = row["reasons"].split(", ")
-    
-            # Disegna una card semplice
-            with st.container():
-                st.markdown(f"### {idx+1}. {country} — Score: `{score:.4f}`")
-                st.markdown("<ul style='margin-left: 20px;'>", unsafe_allow_html=True)
-                for r in reasons:
-                    st.markdown(f"<li>{r}</li>", unsafe_allow_html=True)
-                st.markdown("</ul>", unsafe_allow_html=True)
-                st.markdown("---")
+        
+            # HTML Card
+            card_html = f"""
+            <div style="background-color:#f9f9f9; padding:20px; border-radius:10px; border:1px solid #ddd; margin-bottom:20px;">
+                <h3 style="margin-bottom:10px;">{idx+1}. <b>{country}</b> — <span style='background-color:#e8f5e9; color:#2e7d32; padding:4px 10px; border-radius:5px; font-family:monospace;'>{score:.4f}</span></h3>
+                <ul style="padding-left:20px; line-height:1.6;">
+            """
+        
+            for reason in reasons:
+                card_html += f"<li>{reason}</li>"
+        
+            card_html += "</ul></div>"
+        
+            st.markdown(card_html, unsafe_allow_html=True)
+
     
         st.markdown("### 📊 Visualization of top scores")
         st.markdown("This chart shows how strongly each recommended country matches your personal preferences.")
