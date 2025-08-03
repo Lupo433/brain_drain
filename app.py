@@ -12,7 +12,7 @@ df = pd.read_csv("dataset_final.csv")
 st.set_page_config(page_title="GoWhere - Brain Drain Analyzer", layout="centered")
 
 # === TITLE ===
-st.title("🌍 222 GoWhere - Brain Drain Analyzer")
+st.title("🌍 2222 GoWhere - Brain Drain Analyzer")
 st.markdown("""
 This tool helps you find the best countries based on your personal preferences,
 comparing key factors like jobs, safety, health, and more. Answer a few questions
@@ -172,10 +172,8 @@ if st.button("🔍 Discover best countries"):
 
     result_html += "</tbody></table>"
 
-    # ✅ FUNZIONA SOLO CON unsafe_allow_html=True
     st.markdown(result_html, unsafe_allow_html=True)
 
-    # Chart
     st.markdown("### 📊 Visualization of top scores")
     st.markdown("This chart shows how strongly each recommended country matches your personal preferences.")
     fig, ax = plt.subplots(figsize=(5, 3.5))
@@ -184,6 +182,7 @@ if st.button("🔍 Discover best countries"):
     ax.set_title("Top Recommended Countries")
     ax.invert_yaxis()
     st.pyplot(fig)
+
 
 
 
