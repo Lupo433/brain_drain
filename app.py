@@ -122,60 +122,58 @@ if st.button("🔍 Discover best countries"):
     result = recommend_countries(df, origin, sex, indices_to_improve, indices_desired)
 
     # === DISPLAY TABULAR RESULTS (with word wrapping) ===
-    st.subheader("🔝 Recommended Countries")
-    st.markdown("Here are the countries that best match your preferences. You can review the reasoning behind the score for each destination.")
+    # === HTML Table rendering ===
+    st.markdown("### 🏆 Recommended Countries")
+    st.markdown("""
+    Here are the countries that best match your preferences. You can review the reasoning behind the score for each destination.
+    """)
     
-    # Build HTML table manually
-    table_html = """
+    result_html = """
     <style>
-        .scroll-table {
-            overflow-x: auto;
-        }
         table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 14px;
+            table-layout: auto;
         }
         th, td {
-            text-align: left;
+            border: 1px solid #DDD;
             padding: 8px;
-            border-bottom: 1px solid #ddd;
+            text-align: left;
             vertical-align: top;
-            white-space: pre-line;
         }
         th {
-            background-color: #f0f0f0;
+            background-color: #f2f2f2;
+        }
+        td {
+            white-space: pre-wrap;
+            word-wrap: break-word;
         }
     </style>
-    <div class="scroll-table">
-        <table>
-            <thead>
-                <tr>
-                    <th>Destination</th>
-                    <th>Final Score</th>
-                    <th>Reasons</th>
-                </tr>
-            </thead>
-            <tbody>
+    <table>
+    <thead>
+    <tr>
+        <th>Destination</th>
+        <th>Final Score</th>
+        <th>Reasons</th>
+    </tr>
+    </thead>
+    <tbody>
     """
     
     for _, row in result.iterrows():
-        reasons = row["reasons"].replace(", ", "<br>")
-        table_html += f"""
-            <tr>
-                <td>{row['country_of_destination']}</td>
-                <td>{row['final_score']:.4f}</td>
-                <td>{reasons}</td>
-            </tr>
+        reasons_formatted = "<br>".join(row["reasons"].split(", "))
+        result_html += f"""
+        <tr>
+            <td>{row['country_of_destination']}</td>
+            <td>{row['final_score']:.4f}</td>
+            <td>{reasons_formatted}</td>
+        </tr>
         """
     
-    table_html += """
-            </tbody>
-        </table>
-    </div>
-    """
+    result_html += "</tbody></table>"
     
-    st.markdown(table_html, unsafe_allow_html=True)
+    st.markdown(result_html, unsafe_allow_html=True)
+
     
     # Visualization (resized and clean)
     st.markdown("### 📊 Visualization of top scores")
