@@ -182,19 +182,18 @@ if selected_ind:
     st.pyplot(fig)
 
 # === HASSE DIAGRAM ===
-st.subheader("📈 Country Relationship Diagram")
+import pygraphviz  # Assicurati che sia installato
+from networkx.drawing.nx_agraph import graphviz_layout
 
+st.subheader("📈 Country Relationship Diagram")
 st.markdown("""
-This section displays a **Hasse diagram** that visualizes dominance relationships between countries based on multiple selected indicators.  
-- Each **node** represents a country.  
-- An **arrow from A to B** means country A dominates country B (i.e., performs better in at least one selected variable and not worse in the others).  
-- The **node color** reflects the value of a fourth variable (e.g., Safety).
+This Hasse diagram shows the dominance relationships between countries based on selected indicators.  
+A country dominates another if it performs better in all selected metrics, and strictly better in at least one.  
+You can customize which indicators are used and how node colors reflect performance.
 """)
 
 with st.expander("Customize and view Hasse diagram"):
     dest_cols = [col for col in df.columns if col.startswith("dest_")]
-
-    # Set default variables
     default_vars = ["dest_Education", "dest_Jobs", "dest_Income", "dest_Safety"]
     var1 = st.selectbox("Variable 1", dest_cols, index=dest_cols.index(default_vars[0]))
     var2 = st.selectbox("Variable 2", dest_cols, index=dest_cols.index(default_vars[1]))
@@ -217,34 +216,37 @@ with st.expander("Customize and view Hasse diagram"):
                 a = df_grouped.loc[i, selected]
                 b = df_grouped.loc[j, selected]
                 if dominates(a, b):
-                    intermediates = [
-                        k for k in countries if dominates(df_grouped.loc[i, selected], df_grouped.loc[k, selected])
-                        and dominates(df_grouped.loc[k, selected], df_grouped.loc[j, selected])
-                        and k != i and k != j
-                    ]
+                    intermediates = [k for k in countries if dominates(df_grouped.loc[i, selected], df_grouped.loc[k, selected])
+                                     and dominates(df_grouped.loc[k, selected], df_grouped.loc[j, selected])
+                                     and k != i and k != j]
                     if not intermediates:
                         G.add_edge(i, j)
 
-        pos = nx.spring_layout(G, seed=42)
+        # 📐 Better layout
+        pos = graphviz_layout(G, prog='dot')  # vertical Hasse-like
+
+        # 🎨 Node coloring
         color_vals = df_grouped[color_metric].to_dict()
         node_colors = [color_vals.get(n, 0.5) for n in G.nodes()]
-        cmap = plt.cm.Blues
+        cmap = plt.cm.plasma
         norm = plt.Normalize(min(node_colors), max(node_colors))
-        node_sizes = [800 + 400 * G.out_degree(n) for n in G.nodes()]
 
-        fig, ax = plt.subplots(figsize=(14, 10))
+        # 🔠 Node size and labels
+        node_sizes = [500 + 300 * G.out_degree(n) for n in G.nodes()]
+        fig, ax = plt.subplots(figsize=(12, 10))
         nx.draw_networkx_nodes(G, pos, node_color=node_colors, node_size=node_sizes,
                                cmap=cmap, ax=ax, edgecolors='black')
-        nx.draw_networkx_labels(G, pos, font_size=8, ax=ax)
+        nx.draw_networkx_labels(G, pos, font_size=7, ax=ax)
         nx.draw_networkx_edges(G, pos, ax=ax, arrows=True,
-                               arrowstyle='-|>', arrowsize=20, edge_color='gray')
+                               arrowstyle='-|>', arrowsize=12, edge_color='gray')
 
+        # 🎨 Colorbar
         sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
         sm.set_array([])
-        cbar = plt.colorbar(sm, ax=ax, shrink=0.7)
+        cbar = plt.colorbar(sm, ax=ax, shrink=0.6)
         cbar.set_label(color_metric)
 
-        plt.title("Hasse Diagram", fontsize=14)
+        plt.title("Hasse Diagram", fontsize=14, pad=20)
         plt.axis("off")
-        plt.tight_layout()
+        plt.tight_layout(pad=2)
         st.pyplot(fig)
