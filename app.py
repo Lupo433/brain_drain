@@ -27,42 +27,36 @@ indicators = [
 ]
 
 # === USER PREFERENCES ===
-with st.form("user_preferences_form"):
-    st.subheader("🧭 Customize your preferences")
+# === USER PREFERENCES ===
+st.subheader("👤 Personal Preferences")
+sex = st.selectbox("Gender", ["Male", "Female"])
+origin = st.selectbox("Country of birth", sorted(df["country_of_birth"].unique()))
 
-    col1, col2 = st.columns(2)
-    with col1:
-        sex = st.selectbox(
-            "Select your gender",
-            ["Male", "Female"],
-            help="Your gender may influence preferences and migration motivations."
-        )
-    with col2:
-        origin = st.selectbox(
-            "Select your country of origin",
-            sorted(df["country_of_birth"].unique()),
-            help="The country you currently live in."
-        )
+# --- Section 1: What to improve ---
+st.markdown("### ❌ What do you want to improve in your current country?")
+st.markdown("Select things you’d like to escape or improve and assign importance (0–10).")
 
-    st.markdown("### ❌ What do you want to improve in your current country?")
-    st.caption("Select things you’d like to escape or improve and assign importance (0–10).")
-    indices_to_improve = {}
-    cols = st.columns(2)
-    for i, ind in enumerate(indicators):
-        with cols[i % 2]:
-            if st.checkbox(f"{ind}", key=f"imp_{ind}"):
-                weight = st.slider(f"Weight for {ind}", 0.0, 10.0, 5.0, 0.5, key=f"w_imp_{ind}")
-                indices_to_improve[ind] = weight
+cols = st.columns(2)
+indices_to_improve = {}
+for i, ind in enumerate(indici_disponibili):
+    with cols[i % 2]:
+        check = st.checkbox(ind, key=f"imp_check_{ind}")
+        if check:
+            weight = st.slider(f"Weight for {ind}", 0.0, 10.0, 5.0, 0.5, key=f"imp_slider_{ind}")
+            indices_to_improve[ind] = weight
 
-    st.markdown("### ✅ What do you desire in a new country?")
-    st.caption("Select aspects that matter to you even if they're already good at home.")
-    indices_desired = {}
-    cols2 = st.columns(2)
-    for i, ind in enumerate(indicators):
-        with cols2[i % 2]:
-            if st.checkbox(f"{ind}", key=f"des_{ind}"):
-                weight = st.slider(f"Weight for {ind}", 0.0, 10.0, 5.0, 0.5, key=f"w_des_{ind}")
-                indices_desired[ind] = weight
+# --- Section 2: What to look for ---
+st.markdown("### ✅ What do you desire in a new country?")
+st.markdown("Indicate what you actively seek in a new country and assign importance (0–10).")
+
+cols2 = st.columns(2)
+indices_desired = {}
+for i, ind in enumerate(indici_disponibili):
+    with cols2[i % 2]:
+        check = st.checkbox(ind, key=f"des_check_{ind}")
+        if check:
+            weight = st.slider(f"Weight for {ind}", 0.0, 10.0, 5.0, 0.5, key=f"des_slider_{ind}")
+            indices_desired[ind] = weight
 
     submitted = st.form_submit_button("🔍 Discover best countries")
 
