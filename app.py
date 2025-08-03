@@ -222,7 +222,7 @@ with st.expander("Customize and view Hasse diagram"):
                         G.add_edge(i, j)
 
         # 📐 Better layout
-        pos = nx.kamada_kawai_layout(G)  # readable and structured layout
+        pos = nx.nx_pydot.graphviz_layout(G, prog='dot')
 
         # 🎨 Node coloring
         color_vals = df_grouped[color_metric].to_dict()
