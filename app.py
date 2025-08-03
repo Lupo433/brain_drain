@@ -184,28 +184,23 @@ if selected_ind:
 # === HASSE DIAGRAM ===
 st.subheader("📈 Hasse Diagram of Destinations")
 
-# Crea il grafo solo se la tabella non è vuota
 if not df.empty:
-    # Raggruppa il DataFrame per paese di destinazione e calcola la media degli indicatori
-    color_metric = "Safety"  # Puoi cambiare qui l'indicatore usato per colorare
+    color_metric = "Safety"  # Indicatore usato per i colori
     df_grouped = df.groupby("country_of_destination").mean(numeric_only=True)
 
     G = nx.DiGraph()
 
-    # Aggiungi nodi
     for country in df_grouped.index:
         G.add_node(country, label=country)
 
-    # Aggiungi archi arbitrari basati su confronto dell'indicatore scelto (per esempio, Safety)
     for a in df_grouped.index:
         for b in df_grouped.index:
             if a != b and df_grouped.loc[a, f"dest_{color_metric}"] < df_grouped.loc[b, f"dest_{color_metric}"]:
                 G.add_edge(a, b)
 
-    # Layout
-    pos = nx.spring_layout(G, seed=42)
+    # Migliore layout: evita sovrapposizioni
+    pos = nx.kamada_kawai_layout(G)
 
-    # Funzione per convertire grafo in DOT
     def convert_graph_to_dot(G):
         dot_str = "digraph G {\n"
         for node in G.nodes:
@@ -231,8 +226,11 @@ if not df.empty:
     nx.draw_networkx_nodes(G, pos, node_color=node_colors, node_size=node_sizes,
                            cmap=cmap, ax=ax, edgecolors='black')
     nx.draw_networkx_labels(G, pos, font_size=8, ax=ax)
-    nx.draw_networkx_edges(G, pos, ax=ax, arrows=True,
-                           arrowstyle='-|>', arrowsize=12, edge_color='gray')
+    nx.draw_networkx_edges(
+        G, pos, ax=ax, arrows=True,
+        arrowstyle='-|>', arrowsize=10,
+        edge_color='gray', connectionstyle="arc3,rad=0.2"
+    )
 
     sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
     sm.set_array([])
@@ -245,4 +243,3 @@ if not df.empty:
     st.pyplot(fig)
 else:
     st.warning("No data available to build the diagram.")
-
