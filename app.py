@@ -444,3 +444,38 @@ else:
     except Exception as e:
         st.error(f"❌ Error while generating cluster: {str(e)}")
 
+# === CONCLUSIONE FINALE ===
+st.markdown("## 🧭 Final Thoughts – Beyond the Data")
+
+st.markdown("""
+You've taken a deep dive into the factors that matter—like **Education**, **Health**, **Income**, **Safety**, and more—and identified top destination countries based on your personal profile.  
+With visual clustering and score breakdowns, this app helps illuminate not just **where** but **why** some countries match your priorities better than others.
+""")
+
+st.markdown("""
+#### But let's zoom out and reflect on the bigger picture: *brain drain vs. brain gain*
+
+Research increasingly shows that while skilled migration may seem like a loss for origin countries, it often leads to **net gains** when the right systems are in place:
+- 🧠 Countries with **flexible education & training systems** can adapt to talent outflows by upskilling more citizens—triggering a broader **brain gain** effect.
+- 🌍 **Diaspora networks**, return migration, and remittances fuel entrepreneurship, knowledge exchange, and trade, boosting development at home.
+
+> Source: [Yale EGC – Brain Drain or Brain Gain?](https://egc.yale.edu/research/brain-drain-or-brain-gain-new-research-identifies-more-nuanced-story-about-skilled-migration?utm_source=chatgpt.com)
+""")
+
+st.markdown("""
+---
+
+### ✔️ In Short:
+- Your insights help **maximize the benefits** of skilled migration by focusing on opportunities—not just destinations.
+- Whether you're considering **temporary relocation**, **return plans**, or **career exploration**, this tool empowers informed decision-making.
+- For policymakers, it highlights the importance of investing in education, mobility, and digital infrastructure to **turn migration into a win‑win strategy**.
+
+---
+
+### Thank You for Exploring with GoWhere 🌍
+
+We hope this app has given you confidence and clarity. Let the data guide your journey—and may your next destination be one that aligns with your goals, values, and potential.
+
+If you'd like to explore more variables or update your preferences, just scroll up and try again.
+""")
+
