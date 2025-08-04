@@ -47,28 +47,28 @@ st.markdown("""
     }
 
     /* === TOOLTIP (icona e contenuto) === */
-    /* Punto interrogativo */
+    /* Icona punto interrogativo */
     div[data-testid="stTooltipIcon"] svg,
     svg[data-testid="icon-help"] {
         stroke: #cccccc !important;
         fill: #000000 !important;
     }
-    
-    /* Contenitore tooltip */
+
+    /* Tooltip box */
     div[role="tooltip"] {
         background-color: #ffffff !important;
+        color: #000000 !important;
         border-radius: 6px !important;
         padding: 8px 10px !important;
         box-shadow: 0px 0px 5px rgba(0,0,0,0.2);
-    }
-    
-    /* Testo del tooltip */
-    div[role="tooltip"] > div {
-        color: #000000 !important;
-        font-weight: 500 !important;
+        z-index: 9999 !important;
         opacity: 1 !important;
     }
 
+    /* Forza colore nero anche se contenuto nested */
+    div[role="tooltip"] * {
+        color: #000000 !important;
+    }
 
     /* === ICONE ANCORAGGIO === */
     a[href^="#"] svg {
@@ -82,13 +82,12 @@ st.markdown("""
         color: inherit !important;
     }
 
-    /* === ICONA TRE PUNTINI (menu Streamlit) === */
+    /* === ICONA TRE PUNTINI (menu Streamlit header) === */
     button[data-testid="stBaseButton-headerNoPadding"] svg {
         stroke: black !important;
         fill: black !important;
         opacity: 1 !important;
     }
-
     button[data-testid="stBaseButton-headerNoPadding"] {
         background-color: transparent !important;
         border-radius: 6px;
@@ -98,47 +97,18 @@ st.markdown("""
     div[data-testid="stMarkdownContainer"] h3 {
         color: white !important;
     }
-
     div[data-testid="stMarkdownContainer"] ul {
         color: white !important;
     }
-
     div[data-testid="stMarkdownContainer"] h3 span {
         background-color: #e8f5e9 !important;
         color: #2e7d32 !important;
         font-weight: bold;
     }
-
     div[data-testid="stMarkdownContainer"] > div {
         background-color: #1e1e1e !important;
     }
-</style>
-""", unsafe_allow_html=True)
 
-st.markdown("""
-<style>
-/* Icona tooltip (cerchio con ?) */
-div[data-testid="stTooltipIcon"] svg,
-svg[data-testid="icon-help"] {
-    stroke: #cccccc !important;
-    fill: #000000 !important;
-}
-
-/* Tooltip box */
-div[role="tooltip"] {
-    background-color: #ffffff !important;
-    border-radius: 6px !important;
-    padding: 8px 10px !important;
-    box-shadow: 0px 0px 5px rgba(0,0,0,0.2);
-}
-
-/* Testo del tooltip: applicato a TUTTI gli elementi dentro il tooltip */
-div[role="tooltip"], 
-div[role="tooltip"] * {
-    color: #000000 !important;
-    font-weight: 500 !important;
-    opacity: 1 !important;
-}
 </style>
 """, unsafe_allow_html=True)
 
