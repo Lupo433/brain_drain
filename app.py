@@ -13,157 +13,101 @@ st.set_page_config(page_title="GoWhere - Brain Drain Analyzer", layout="centered
 
 # === DARK THEME OVERRIDE ===
 st.markdown("""
-    <style>
-        body {
-            background-color: #121212;
-            color: white;
-        }
-        .stApp {
-            background-color: #121212;
-            color: white;
-        }
-        h1, h2, h3, h4, h5, h6 {
-            color: white;
-        }
-        .stMarkdown, .stText, .stSubheader, .stCaption {
-            color: white !important;
-        }
-        .css-1d391kg {  /* widget label color */
-            color: white !important;
-        }
-        .css-1v0mbdj, .css-1cpxqw2 {  /* dropdowns and sliders */
-            background-color: #2e2e2e !important;
-            color: white !important;
-        }
-        .css-1cpxqw2:hover {
-            border-color: #ffffff !important;
-        }
-        .stButton>button {
-            color: white;
-            background-color: #333333;
-        }
-        .stButton>button:hover {
-            background-color: #444444;
-        }
-    </style>
-""", unsafe_allow_html=True)
-
-st.markdown("""
-    <style>
-        /* Tooltip icon: bordo e ? grigi, interno nero */
-        div[data-testid="stTooltipIcon"] svg {
-            stroke: #cccccc !important;  /* colore del punto interrogativo */
-            fill: #000000 !important;    /* sfondo interno del cerchio */
-        }
-    </style>
-""", unsafe_allow_html=True)
-
-st.markdown("""
 <style>
-/* === Recommendation Cards === */
-div[data-testid="stMarkdownContainer"] h3 {
-    color: white !important;
-}
-
-div[data-testid="stMarkdownContainer"] ul {
-    color: white !important;
-}
-
-/* Score badge */
-div[data-testid="stMarkdownContainer"] h3 span {
-    background-color: #e8f5e9 !important;
-    color: #2e7d32 !important;
-    font-weight: bold;
-}
-
-/* Tooltip icon if used inside card */
-svg.icon {
-    stroke: #bbb !important;
-}
-
-/* Optional: make background darker if needed */
-div[data-testid="stMarkdownContainer"] > div {
-    background-color: #1e1e1e !important;
-}
-</style>
-""", unsafe_allow_html=True)
-
-
-st.markdown("""
-    <style>
-        /* Etichette delle variabili (checkbox, slider) */
-        .stCheckbox > label > div, .stSlider label, .stRadio label, label[data-testid="stMarkdownContainer"] {
-            color: white !important;
-        }
-
-        /* Tooltip icon (il punto interrogativo) */
-        svg[data-testid="icon-help"] {
-            color: white !important;
-        }
-
-        /* Tooltip container NON toccato per mantenere testo leggibile */
-    </style>
-""", unsafe_allow_html=True)
-
-st.markdown("""
-<style>
-/* Cambia colore delle etichette come "Select your gender" */
-div[data-testid="stMarkdownContainer"] p {
-    color: #e0e0e0 !important;
-    font-weight: 500;
-}
-
-/* Cambia il colore del cerchio e del punto interrogativo */
-svg.icon {
-    stroke: #bbbbbb !important;      /* Contorno + ? grigio chiaro */
-    fill: none !important;           /* Sfondo trasparente (resta nero) */
-}
-
-/* Se vuoi anche rendere il cerchio un po' più visibile */
-svg.icon circle {
-    stroke: #bbbbbb !important;      /* Cerchio grigio chiaro */
-}
-</style>
-""", unsafe_allow_html=True)
-
-
-st.markdown("""
-    <style>
-    /* Mostra sempre le icone visibili in grigio */
-    a[href^="#"] svg {
-        stroke: #b3b3b3 !important;  /* colore grigio chiaro */
-        background-color: #000 !important;  /* sfondo nero */
-        border-radius: 5px; 
-        padding: 3px;
+    body, .stApp {
+        background-color: #121212;
+        color: white;
+    }
+    h1, h2, h3, h4, h5, h6,
+    .stMarkdown, .stText, .stSubheader, .stCaption,
+    .stCheckbox > label > div, .stSlider label, .stRadio label,
+    label[data-testid="stMarkdownContainer"],
+    div[data-testid="stMarkdownContainer"] p {
+        color: white !important;
     }
 
-    /* Anche in stato non-hover */
-    a[href^="#"]:not(:hover) svg {
+    /* Dropdowns e slider */
+    .css-1v0mbdj, .css-1cpxqw2 {
+        background-color: #2e2e2e !important;
+        color: white !important;
+    }
+    .css-1cpxqw2:hover {
+        border-color: #ffffff !important;
+    }
+
+    /* Pulsanti */
+    .stButton>button {
+        color: white;
+        background-color: #333333;
+    }
+    .stButton>button:hover {
+        background-color: #444444;
+    }
+
+    /* Tooltip: icona con cerchio e ? */
+    div[data-testid="stTooltipIcon"] svg,
+    svg[data-testid="icon-help"] {
+        stroke: #cccccc !important;
+        fill: #000000 !important;
+    }
+
+    /* Tooltip text box */
+    div[data-testid="stTooltipHoverTarget"] div[role="tooltip"] {
+        color: #000 !important;
+        background-color: #ffffff !important;
+    }
+
+    /* Etichette tipo "Select your gender" */
+    div[data-testid="stMarkdownContainer"] p {
+        color: #e0e0e0 !important;
+        font-weight: 500;
+    }
+
+    /* Icone di ancoraggio/link accanto ai titoli */
+    a[href^="#"] svg {
+        stroke: #b3b3b3 !important;
+        background-color: #000 !important;
+        border-radius: 5px;
+        padding: 3px;
         opacity: 1 !important;
     }
 
-    /* Rimuove l'effetto di sparizione prima dell'hover */
     a[href^="#"] {
         color: inherit !important;
     }
-    </style>
-""", unsafe_allow_html=True)
 
-st.markdown("""
-    <style>
-    /* Rendi visibili i 3 puntini (menu) scuri anche su sfondo chiaro */
+    /* Tre puntini in alto a destra */
     [data-testid="stActionButtonIcon"] svg {
-        stroke: #444 !important;  /* grigio scuro */
+        stroke: #444 !important;
         fill: #444 !important;
         opacity: 1 !important;
     }
-
-    /* Rimuovi effetto di fade */
     [data-testid="stActionButtonIcon"] {
         background-color: transparent !important;
         border-radius: 6px;
     }
-    </style>
+
+    /* Risultati - titolo e badge */
+    div[data-testid="stMarkdownContainer"] h3 {
+        color: white !important;
+    }
+
+    div[data-testid="stMarkdownContainer"] ul {
+        color: white !important;
+    }
+
+    div[data-testid="stMarkdownContainer"] h3 span {
+        background-color: #e8f5e9 !important;
+        color: #2e7d32 !important;
+        font-weight: bold;
+    }
+
+    /* Background dei riquadri risultati */
+    div[data-testid="stMarkdownContainer"] > div {
+        background-color: #1e1e1e !important;
+    }
+
+</style>
 """, unsafe_allow_html=True)
 
 
