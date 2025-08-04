@@ -50,6 +50,17 @@ st.markdown("""
 
 st.markdown("""
     <style>
+        /* Forza il colore bianco sull'icona del tooltip (?) */
+        div[data-testid="stTooltipIcon"] svg {
+            stroke: #ffffff !important;
+            fill: #ffffff !important;
+        }
+    </style>
+""", unsafe_allow_html=True)
+
+
+st.markdown("""
+    <style>
         /* Etichette delle variabili (checkbox, slider) */
         .stCheckbox > label > div, .stSlider label, .stRadio label, label[data-testid="stMarkdownContainer"] {
             color: white !important;
