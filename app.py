@@ -127,6 +127,27 @@ svg.icon circle {
 """, unsafe_allow_html=True)
 
 
+st.markdown("""
+    <style>
+    /* Mostra sempre le icone visibili in grigio */
+    a[href^="#"] svg {
+        stroke: #b3b3b3 !important;  /* colore grigio chiaro */
+        background-color: #000 !important;  /* sfondo nero */
+        border-radius: 5px; 
+        padding: 3px;
+    }
+
+    /* Anche in stato non-hover */
+    a[href^="#"]:not(:hover) svg {
+        opacity: 1 !important;
+    }
+
+    /* Rimuove l'effetto di sparizione prima dell'hover */
+    a[href^="#"] {
+        color: inherit !important;
+    }
+    </style>
+""", unsafe_allow_html=True)
 
 
 
