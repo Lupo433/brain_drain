@@ -182,53 +182,114 @@ if selected_ind:
     st.pyplot(fig)
 
 
+import streamlit as st
+import pandas as pd
 import plotly.express as px
+from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA
+from sklearn.cluster import KMeans
+from sklearn.metrics import silhouette_score
 
-# === GEOGRAPHIC HEATMAP (OECD Only) ===
-st.subheader("🗺️ Geographic Heatmap of OECD Countries")
+st.subheader("🔍 Cluster dei Paesi in base agli indicatori")
 
-# Lista ISO-3 dei paesi membri OCSE
-oecd_countries = [
-    "AUS", "AUT", "BEL", "CAN", "CHE", "CHL", "COL", "CZE", "DNK", "EST",
-    "FIN", "FRA", "DEU", "GRC", "HUN", "ISL", "IRL", "ISR", "ITA", "JPN",
-    "KOR", "LVA", "LTU", "LUX", "MEX", "NLD", "NZL", "NOR", "POL", "PRT",
-    "SVK", "SVN", "ESP", "SWE", "TUR", "GBR", "USA"
+indici = [
+    "Education", "Jobs", "Income", "Safety", "Health", "Environment",
+    "Civic engagement", "Accessiblity to services", "Housing",
+    "Community", "Life satisfaction", "PR rating", "CL rating"
 ]
 
-# Seleziona la variabile per la colorazione e altre per il tooltip
-st.markdown("Seleziona la variabile principale per colorare la mappa e altre da mostrare nel tooltip.")
-all_vars = [f"dest_{ind}" for ind in indicators]
-color_var = st.selectbox("🌡️ Variabile da colorare", all_vars, index=all_vars.index("dest_Safety"))
-tooltip_vars = st.multiselect("🧾 Variabili nel tooltip", all_vars, default=["dest_Jobs", "dest_Income", "dest_Health"])
-
-# Crea il DataFrame medio per paese e filtra i paesi OECD
-df_grouped = df.groupby("country_of_destination").mean(numeric_only=True).reset_index()
-df_grouped = df_grouped[df_grouped["country_of_destination"].isin(oecd_countries)]
-df_grouped["iso_alpha"] = df_grouped["country_of_destination"]
-
-# Costruzione del tooltip
-df_grouped["tooltip"] = df_grouped.apply(
-    lambda row: "<br>".join([f"{v.replace('dest_', '')}: {row[v]:.2f}" for v in tooltip_vars]),
-    axis=1
+selected = st.multiselect(
+    "Seleziona almeno due indici per raggruppare i paesi",
+    options=indici,
+    default=["Education", "Income"]
 )
 
-# Creazione mappa Plotly
-fig = px.choropleth(
-    df_grouped,
-    locations="iso_alpha",
-    locationmode="ISO-3",
-    color=color_var,
-    hover_name="country_of_destination",
-    hover_data={"tooltip": True, "iso_alpha": False, color_var: True},
-    color_continuous_scale="Blues",
-    title=f"{color_var.replace('dest_', '')} across OECD Countries"
-)
+if len(selected) < 2:
+    st.warning("⚠️ Seleziona almeno due indici per continuare.")
+else:
+    try:
+        cols = [f"dest_{i}" for i in selected]
+        df_media = df.groupby("country_of_destination")[cols].mean().reset_index()
+        df_media.dropna(inplace=True)
 
-fig.update_traces(hovertemplate="<b>%{hovertext}</b><br>%{customdata[0]}")
-fig.update_layout(
-    margin={"r": 0, "t": 40, "l": 0, "b": 0},
-    geo=dict(showframe=False, showcoastlines=True, projection_type='natural earth'),
-)
+        if df_media.empty:
+            st.error("⚠️ Nessun dato valido disponibile.")
+        else:
+            X = StandardScaler().fit_transform(df_media[cols])
 
-st.plotly_chart(fig, use_container_width=True)
+            if len(selected) > 2:
+                X_pca = PCA(n_components=2).fit_transform(X)
+                df_media["PCA1"] = X_pca[:, 0]
+                df_media["PCA2"] = X_pca[:, 1]
+            else:
+                df_media["PCA1"] = X[:, 0]
+                df_media["PCA2"] = X[:, 1]
 
+            silhouette_scores = []
+            cluster_range = range(2, min(10, len(df_media)))
+            for k in cluster_range:
+                km = KMeans(n_clusters=k, n_init="auto", random_state=42)
+                labels = km.fit_predict(X)
+                score = silhouette_score(X, labels)
+                silhouette_scores.append((k, score))
+
+            best_k = max(silhouette_scores, key=lambda x: x[1])[0]
+            kmeans = KMeans(n_clusters=best_k, n_init="auto", random_state=42)
+            df_media["Cluster"] = kmeans.fit_predict(X)
+
+            # Descrizione cluster
+            cluster_summary = df_media.groupby("Cluster")[cols].mean()
+            cluster_labels = {}
+            for cluster_id, row in cluster_summary.iterrows():
+                high = [col.replace("dest_", "") for col, val in row.items() if val >= 0.7]
+                medium = [col.replace("dest_", "") for col, val in row.items() if 0.4 <= val < 0.7]
+                low = [col.replace("dest_", "") for col, val in row.items() if val < 0.4]
+                media = row.mean()
+                label = f"Cluster {cluster_id}"
+                if high:
+                    label += f" – Alti: {', '.join(high)}"
+                if medium:
+                    label += f" | Medi: {', '.join(medium)}"
+                if low:
+                    label += f" | Bassi: {', '.join(low)}"
+                label += f" | Media: {media:.2f}"
+                cluster_labels[cluster_id] = label
+
+            df_media["Cluster_label"] = df_media["Cluster"].map(cluster_labels)
+            df_media["text"] = df_media["country_of_destination"]
+
+            hover_data = {
+                "country_of_destination": True,
+                **{col: True for col in cols}
+            }
+
+            fig = px.scatter(
+                df_media, x="PCA1", y="PCA2",
+                color="Cluster_label",
+                text="text",
+                title="🌍 Cluster dei Paesi – Basato su indicatori selezionati",
+                labels={"PCA1": "Componente 1", "PCA2": "Componente 2"},
+                hover_data=hover_data,
+                width=1000, height=600
+            )
+
+            fig.update_traces(textposition="top center", marker=dict(size=9))
+
+            x_min = df_media["PCA1"].min() - 1
+            x_max = df_media["PCA1"].max() + 1
+            fig.update_xaxes(tick0=round(x_min), dtick=0.5, range=[x_min, x_max])
+
+            y_min = df_media["PCA2"].min() - 1
+            y_max = df_media["PCA2"].max() + 1
+            fig.update_yaxes(tick0=round(y_min), dtick=0.5, range=[y_min, y_max])
+
+            fig.update_layout(
+                legend_title_text="Cluster",
+                legend=dict(font=dict(size=10)),
+                margin=dict(l=50, r=50, t=60, b=50)
+            )
+
+            st.plotly_chart(fig, use_container_width=True)
+
+    except Exception as e:
+        st.error(f"❌ Errore durante la generazione del cluster: {str(e)}")
