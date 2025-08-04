@@ -150,6 +150,21 @@ button[class^="st-emotion-cache-"]:hover {
 </style>
 """, unsafe_allow_html=True)
 
+st.markdown("""
+    <style>
+    /* Pulsanti link SVG (icone accanto ai titoli) */
+    a[class^="st-emotion-cache-yin1l1"] svg {
+        background-color: #0f0f0f;  /* sfondo nero */
+        border-radius: 5px;
+        padding: 3px;
+    }
+    a[class^="st-emotion-cache-yin1l1"] svg path,
+    a[class^="st-emotion-cache-yin1l1"] svg line {
+        stroke: #aaa;  /* icona grigia */
+    }
+    </style>
+""", unsafe_allow_html=True)
+
 
 
 # === TITLE ===
