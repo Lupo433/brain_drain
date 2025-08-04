@@ -306,8 +306,15 @@ st.markdown(
     "This can help you understand the relative strengths and weaknesses of each destination based on your priorities."
 )
 
-p1 = st.selectbox("Country 1", sorted(df["country_of_destination"].unique()), key="p1")
-p2 = st.selectbox("Country 2", sorted(df["country_of_destination"].unique()), key="p2")
+# Create mapping: "ITA - Italy" → "ITA"
+acronym_to_name_dest = df[["country_of_destination", "Country_dest"]].drop_duplicates().set_index("country_of_destination")["Country_dest"].to_dict()
+dest_options = {f"{k} - {acronym_to_name_dest.get(k, '')}": k for k in sorted(df["country_of_destination"].unique())}
+
+# Dropdown with display label, store only acronym
+p1_label = st.selectbox("Country 1", list(dest_options.keys()), key="p1")
+p2_label = st.selectbox("Country 2", list(dest_options.keys()), key="p2")
+p1 = dest_options[p1_label]
+p2 = dest_options[p2_label]
 selected_ind = st.multiselect("Select indicators to compare", indicators, default=["Jobs", "Education"])
 
 if selected_ind:
