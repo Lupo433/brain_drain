@@ -86,18 +86,24 @@ st.markdown("""
         color: inherit !important;
     }
 
-    /* === 3 PUNTINI (ripristina stile originale) === */
+    /* === RIPRISTINA 3 PUNTINI Streamlit (elimina riquadro) === */
     button[data-testid="stBaseButton-headerNoPadding"] {
-        all: unset !important; /* rimuove padding, bg, border-radius, ecc. */
+        all: unset !important;
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
+        background: none !important;
+        box-shadow: none !important;
+        border: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
     }
     
+    /* === RIMPICCIOLISCI icona (dimensioni default Streamlit) === */
     button[data-testid="stBaseButton-headerNoPadding"] svg {
         stroke: black !important;
         fill: black !important;
-        width: 1.25rem !important;   /* dimensioni default Streamlit */
+        width: 1.25rem !important;
         height: 1.25rem !important;
         opacity: 1 !important;
     }
