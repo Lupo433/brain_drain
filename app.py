@@ -459,7 +459,7 @@ Research increasingly shows that while skilled migration may seem like a loss fo
 - 🧠 Countries with **flexible education & training systems** can adapt to talent outflows by upskilling more citizens—triggering a broader **brain gain** effect.
 - 🌍 **Diaspora networks**, return migration, and remittances fuel entrepreneurship, knowledge exchange, and trade, boosting development at home.
 
-> Source: [Yale EGC – Brain Drain or Brain Gain?](https://egc.yale.edu/research/brain-drain-or-brain-gain-new-research-identifies-more-nuanced-story-about-skilled-migration?utm_source=chatgpt.com)
+> Source: [Yale EGC – Brain Drain or Brain Gain?](https://egc.yale.edu/research/brain-drain-or-brain-gain-new-research-identifies-more-nuanced-story-about-skilled-migration?)
 """)
 
 st.markdown("""
