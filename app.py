@@ -11,42 +11,49 @@ df = pd.read_csv("dataset_final.csv")
 
 st.set_page_config(page_title="GoWhere - Brain Drain Analyzer", layout="centered")
 
-# === DARK THEME OVERRIDE ===
 st.markdown("""
     <style>
-        body {
+        body, .stApp {
             background-color: #121212;
             color: white;
         }
-        .stApp {
-            background-color: #121212;
-            color: white;
-        }
-        h1, h2, h3, h4, h5, h6 {
-            color: white;
+        h1, h2, h3, h4, h5, h6, p, span, div {
+            color: white !important;
         }
         .stMarkdown, .stText, .stSubheader, .stCaption {
             color: white !important;
         }
-        .css-1d391kg {  /* widget label color */
+        .css-1d391kg, .css-10trblm, .css-1cpxqw2, .css-1v0mbdj, .e1fb0mya1 {
             color: white !important;
         }
-        .css-1v0mbdj, .css-1cpxqw2 {  /* dropdowns and sliders */
-            background-color: #2e2e2e !important;
+        .stCheckbox > label {
             color: white !important;
         }
-        .css-1cpxqw2:hover {
-            border-color: #ffffff !important;
+        .stSlider > div > div > div {
+            color: white !important;
+        }
+        .stSelectbox > div > div {
+            background-color: #2e2e2e;
+            color: white;
         }
         .stButton>button {
+            background-color: #2e2e2e;
             color: white;
-            background-color: #333333;
         }
         .stButton>button:hover {
-            background-color: #444444;
+            background-color: #3e3e3e;
+        }
+        .css-1qg05tj, .css-1v0mbdj, .css-1n76uvr {
+            color: white !important;
+        }
+        /* Tooltip fix */
+        .css-1aumxhk, .css-1a32fsj {
+            color: white !important;
+            background-color: #333333 !important;
         }
     </style>
 """, unsafe_allow_html=True)
+
 
 
 # === TITLE ===
