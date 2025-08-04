@@ -149,6 +149,22 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
+st.markdown("""
+    <style>
+    /* Rendi visibili i 3 puntini (menu) scuri anche su sfondo chiaro */
+    [data-testid="stActionButtonIcon"] svg {
+        stroke: #444 !important;  /* grigio scuro */
+        fill: #444 !important;
+        opacity: 1 !important;
+    }
+
+    /* Rimuovi effetto di fade */
+    [data-testid="stActionButtonIcon"] {
+        background-color: transparent !important;
+        border-radius: 6px;
+    }
+    </style>
+""", unsafe_allow_html=True)
 
 
 
