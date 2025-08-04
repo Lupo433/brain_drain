@@ -50,17 +50,20 @@ st.markdown("""
 
 st.markdown("""
     <style>
-        /* Etichette delle checkbox e sliders in bianco */
-        label, .stSlider > div > div, .stCheckbox > label, .css-10trblm {
+        /* Etichette delle variabili (checkbox, slider) */
+        .stCheckbox > label > div, .stSlider label, .stRadio label, label[data-testid="stMarkdownContainer"] {
             color: white !important;
         }
 
-        /* Colore bianco per icona del tooltip */
-        .css-1c7y2kd svg, .css-1y0tads svg {
+        /* Tooltip icon (il punto interrogativo) */
+        svg[data-testid="icon-help"] {
             color: white !important;
         }
+
+        /* Tooltip container NON toccato per mantenere testo leggibile */
     </style>
 """, unsafe_allow_html=True)
+
 
 
 # === TITLE ===
