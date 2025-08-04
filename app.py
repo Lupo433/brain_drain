@@ -192,7 +192,7 @@ with col2:
     origin = origin_options[origin_label]
 
 
-st.markdown("### ❌ What do you want to improve in your current country?")
+st.markdown("### ❌ What aspects of your current country do you dislike?")
 st.caption("Select things you’d like to escape or improve and assign importance (0–10).")
 indices_to_improve = {}
 cols = st.columns(2)
@@ -268,9 +268,13 @@ if st.button("🔍 Discover best countries"):
         st.markdown("""
         Here are the countries that best match your preferences. You can review the reasoning behind the score for each destination.
         """)
-    
+        
+        # Mapping acronyms to full names
+        acronym_to_name_dest = df[["country_of_destination", "Country_dest"]].drop_duplicates().set_index("country_of_destination")["Country_dest"].to_dict()
+
         for idx, row in result.iterrows():
-            country = row['country_of_destination']
+            country_acronym = row['country_of_destination']
+            country = acronym_to_name_dest.get(country_acronym, country_acronym)
             score = row['final_score']
             reasons = list(dict.fromkeys(row["reasons"].split(", ")))
         
