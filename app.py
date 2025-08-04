@@ -179,7 +179,18 @@ col1, col2 = st.columns(2)
 with col1:
     sex = st.selectbox("Select your gender", ["Male", "Female"], help="Your gender may influence preferences and migration motivations.")
 with col2:
-    origin = st.selectbox("Select your country of origin", sorted(df["country_of_birth"].unique()), help="The country you currently live in.")
+    # Create mapping: "ITA - Italy" → "ITA"
+    acronym_to_name = df[["country_of_birth", "Country_origin"]].drop_duplicates().set_index("country_of_birth")["Country_origin"].to_dict()
+    origin_options = {f"{k} - {acronym_to_name.get(k, '')}": k for k in sorted(df["country_of_birth"].unique())}
+    
+    # Display friendly label but store only the acronym
+    origin_label = st.selectbox(
+        "Select your country of origin",
+        list(origin_options.keys()),
+        help="The country you currently live in."
+    )
+    origin = origin_options[origin_label]
+
 
 st.markdown("### ❌ What do you want to improve in your current country?")
 st.caption("Select things you’d like to escape or improve and assign importance (0–10).")
