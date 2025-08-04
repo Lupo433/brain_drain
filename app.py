@@ -86,27 +86,30 @@ st.markdown("""
         color: inherit !important;
     }
 
-    /* === RIMUOVI RIQUADRO e padding ai 3 puntini === */
-    button[data-testid="stBaseButton-headerNoPadding"],
-    button[data-testid="stBaseButton-headerNoPadding"] .st-emotion-cache-1sv2vhj {
-        all: unset !important;
-        background: none !important;
-        border: none !important;
-        box-shadow: none !important;
-        padding: 0 !important;
-        margin: 0 !important;
+    /* === RIPRISTINO 3 PUNTINI (menu header Streamlit) === */
+    button[data-testid="stBaseButton-headerNoPadding"] {
+        all: unset !important;  /* Rimuove padding, bg, border, ecc */
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
+        background: none !important;
+        border: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        box-shadow: none !important;
     }
     
-    /* === RIMPICCIOLISCI icona SVG (3 puntini) === */
+    /* SVG interno (tre puntini) */
     button[data-testid="stBaseButton-headerNoPadding"] svg {
-        stroke: black !important;
-        fill: black !important;
-        width: 1.25rem !important;
-        height: 1.25rem !important;
+        width: 20px !important;
+        height: 20px !important;
+        stroke: #000 !important;
+        fill: #000 !important;
         opacity: 1 !important;
+        background: none !important;
+        border-radius: 0 !important;
+        padding: 0 !important;
+        margin: 0 !important;
     }
 
 
