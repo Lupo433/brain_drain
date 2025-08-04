@@ -247,7 +247,7 @@ else:
                 media = row.mean()
                 label = f"Cluster {cluster_id}"
                 if high:
-                    label += f" – Alti: {', '.join(high)}"
+                    label += f" | Alti: {', '.join(high)}"
                 if medium:
                     label += f" | Medi: {', '.join(medium)}"
                 if low:
