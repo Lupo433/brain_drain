@@ -36,6 +36,11 @@ st.markdown("""
         border-color: #ffffff !important;
     }
 
+    /* Nasconde completamente le icone di ancoraggio accanto ai titoli */
+    a[href^="#"] {
+        display: none !important;
+    }
+
     /* Pulsanti */
     .stButton>button {
         color: white;
