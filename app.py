@@ -70,6 +70,16 @@ st.markdown("""
         color: #000000 !important;
     }
 
+    /* Tooltip popup text */
+    .stTooltip, .css-1a32fsj, .css-1aumxhk {
+        background-color: white !important;
+        color: black !important;
+        font-size: 0.85rem !important;
+        border-radius: 6px !important;
+        padding: 8px 10px !important;
+        box-shadow: 0px 2px 6px rgba(0,0,0,0.2);
+    }
+    
     /* === ICONE ANCORAGGIO === */
     a[href^="#"] svg {
         stroke: #b3b3b3 !important;
