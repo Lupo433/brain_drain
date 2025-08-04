@@ -118,12 +118,14 @@ st.markdown("""
 
 st.markdown("""
 <style>
-/* Rende nero il testo all'interno dei tooltip */
-div[data-testid="stTooltipHoverTarget"] > div {
+/* Forza il colore del testo dentro ai tooltip (nuova selezione) */
+div[data-testid="stTooltipHoverTarget"] > div > div {
     color: black !important;
+    font-weight: 500;
 }
 </style>
 """, unsafe_allow_html=True)
+
 
 st.markdown("""
 <style>
