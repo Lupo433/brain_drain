@@ -86,16 +86,22 @@ st.markdown("""
         color: inherit !important;
     }
 
-    /* === TRE PUNTINI (menu Streamlit header) === */
+    /* === 3 PUNTINI (ripristina stile originale) === */
+    button[data-testid="stBaseButton-headerNoPadding"] {
+        all: unset !important; /* rimuove padding, bg, border-radius, ecc. */
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+    
     button[data-testid="stBaseButton-headerNoPadding"] svg {
         stroke: black !important;
         fill: black !important;
+        width: 1.25rem !important;   /* dimensioni default Streamlit */
+        height: 1.25rem !important;
         opacity: 1 !important;
     }
-    button[data-testid="stBaseButton-headerNoPadding"] {
-        background-color: transparent !important;
-        border-radius: 6px;
-    }
+
 
     /* === RISULTATI (cards) === */
     div[data-testid="stMarkdownContainer"] h3 {
