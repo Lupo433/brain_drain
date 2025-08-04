@@ -17,39 +17,50 @@ st.markdown("""
             background-color: #121212;
             color: white;
         }
+
         h1, h2, h3, h4, h5, h6, p, span, div {
             color: white !important;
         }
+
         .stMarkdown, .stText, .stSubheader, .stCaption {
             color: white !important;
         }
-        .css-1d391kg, .css-10trblm, .css-1cpxqw2, .css-1v0mbdj, .e1fb0mya1 {
+
+        .stCheckbox > label, label, .css-1y0tads {
             color: white !important;
         }
-        .stCheckbox > label {
-            color: white !important;
-        }
+
         .stSlider > div > div > div {
             color: white !important;
         }
+
         .stSelectbox > div > div {
             background-color: #2e2e2e;
             color: white;
         }
+
         .stButton>button {
             background-color: #2e2e2e;
             color: white;
         }
+
         .stButton>button:hover {
             background-color: #3e3e3e;
         }
-        .css-1qg05tj, .css-1v0mbdj, .css-1n76uvr {
-            color: white !important;
+
+        /* Tooltip icon – make it light gray */
+        .css-1c7y2kd, .css-1y0tads svg {
+            color: #cccccc !important;
         }
-        /* Tooltip fix */
-        .css-1aumxhk, .css-1a32fsj {
-            color: white !important;
-            background-color: #333333 !important;
+
+        /* Tooltip popup text */
+        .stTooltip, .css-1a32fsj, .css-1aumxhk {
+            background-color: white !important;
+            color: black !important;
+            font-size: 0.85rem !important;
+            border-radius: 6px !important;
+            padding: 8px 10px !important;
+            box-shadow: 0px 2px 6px rgba(0,0,0,0.2);
         }
     </style>
 """, unsafe_allow_html=True)
