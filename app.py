@@ -150,25 +150,6 @@ button[class^="st-emotion-cache-"]:hover {
 </style>
 """, unsafe_allow_html=True)
 
-st.markdown("""
-    <style>
-    /* Sfondo nero per i pulsanti in alto a destra */
-    [data-testid="stActionButton"] svg {
-        background-color: #0f0f0f !important;
-        border-radius: 6px;
-        padding: 5px;
-    }
-
-    /* Cambia il colore dell'icona (stroke) in grigio */
-    [data-testid="stActionButton"] svg path,
-    [data-testid="stActionButton"] svg line,
-    [data-testid="stActionButton"] svg circle {
-        stroke: #bbbbbb !important;
-        fill: #bbbbbb !important;
-    }
-    </style>
-""", unsafe_allow_html=True)
-
 
 
 
