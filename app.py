@@ -191,6 +191,15 @@ from sklearn.metrics import silhouette_score
 
 st.subheader("🔍 Country clusters by indicators")
 
+st.markdown("""
+This tool allows you to explore how countries group together based on selected development indicators.  
+By choosing at least two indicators (e.g., Education, Health, Income), the app uses **clustering and PCA (Principal Component Analysis)** to visually position similar countries together in a 2D space.
+
+Each cluster groups countries with comparable performance on the selected metrics, and the legend provides a summary of each cluster’s strengths and weaknesses.  
+Use this visualization to identify patterns, outliers, or similarities across countries in terms of well-being, opportunity, and quality of life.
+""")
+
+
 indices = indicators
 
 selected = st.multiselect(
