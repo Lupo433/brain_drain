@@ -59,6 +59,37 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 st.markdown("""
+<style>
+/* === Recommendation Cards === */
+div[data-testid="stMarkdownContainer"] h3 {
+    color: white !important;
+}
+
+div[data-testid="stMarkdownContainer"] ul {
+    color: white !important;
+}
+
+/* Score badge */
+div[data-testid="stMarkdownContainer"] h3 span {
+    background-color: #e8f5e9 !important;
+    color: #2e7d32 !important;
+    font-weight: bold;
+}
+
+/* Tooltip icon if used inside card */
+svg.icon {
+    stroke: #bbb !important;
+}
+
+/* Optional: make background darker if needed */
+div[data-testid="stMarkdownContainer"] > div {
+    background-color: #1e1e1e !important;
+}
+</style>
+""", unsafe_allow_html=True)
+
+
+st.markdown("""
     <style>
         /* Etichette delle variabili (checkbox, slider) */
         .stCheckbox > label > div, .stSlider label, .stRadio label, label[data-testid="stMarkdownContainer"] {
