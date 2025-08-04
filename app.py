@@ -50,10 +50,10 @@ st.markdown("""
 
 st.markdown("""
     <style>
-        /* Forza il colore bianco sull'icona del tooltip (?) */
+        /* Tooltip icon color: grigio chiaro ma non pienamente bianco */
         div[data-testid="stTooltipIcon"] svg {
-            stroke: #ffffff !important;
-            fill: #ffffff !important;
+            stroke: #cccccc !important;
+            fill: #cccccc !important;
         }
     </style>
 """, unsafe_allow_html=True)
