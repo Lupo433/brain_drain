@@ -45,6 +45,19 @@ st.markdown("""
         .stButton>button:hover {
             background-color: #444444;
         }
+        /* Colore chiaro per le etichette dei campi selezione */
+        label.css-17lntkn, label.css-1q7rapa {
+            color: #e0e0e0 !important; /* grigio chiaro */
+            font-weight: 500;
+        }
+        
+        /* Tooltip (icona ?) bordo e simbolo chiari su sfondo scuro */
+        .css-1gv3huu {
+            border: 1.5px solid #888 !important; /* bordo del cerchio */
+            color: #888 !important;             /* punto interrogativo */
+            background-color: #111 !important;  /* sfondo interno */
+        }
+
     </style>
 """, unsafe_allow_html=True)
 
@@ -57,21 +70,6 @@ st.markdown("""
         }
     </style>
 """, unsafe_allow_html=True)
-
-st.markdown("""
-    <style>
-    label.css-17lntkn, label.css-1q7rapa {
-        color: #e0e0e0 !important;
-        font-weight: 500;
-    }
-    .css-1gv3huu {
-        border: 1.5px solid #888 !important;
-        color: #888 !important;
-        background-color: #111 !important;
-    }
-    </style>
-""", unsafe_allow_html=True)
-
 
 st.markdown("""
     <style>
