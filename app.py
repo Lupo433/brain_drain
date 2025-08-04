@@ -116,6 +116,27 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+st.markdown("""
+<style>
+/* Rende nero il testo all'interno dei tooltip */
+div[data-testid="stTooltipHoverTarget"] > div {
+    color: black !important;
+}
+</style>
+""", unsafe_allow_html=True)
+
+st.markdown("""
+<style>
+/* Forza visibilità dei tre puntini (menu Streamlit) */
+button[data-testid="stBaseButton-headerNoPadding"] svg {
+    stroke: black !important;
+    fill: black !important;
+    opacity: 1 !important;
+}
+</style>
+""", unsafe_allow_html=True)
+
+
 
 
 # === TITLE ===
