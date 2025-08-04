@@ -11,7 +11,7 @@ df = pd.read_csv("dataset_final.csv")
 
 st.set_page_config(page_title="GoWhere - Brain Drain Analyzer", layout="centered")
 
-# === DARK THEME OVERRIDE ===
+
 st.markdown("""
 <style>
     /* === BASE DARK THEME === */
@@ -46,31 +46,17 @@ st.markdown("""
         background-color: #444444;
     }
 
-    /* === TOOLTIP (icona e contenuto) === */
-    /* Icona punto interrogativo */
+    /* === TOOLTIP (Icona + Contenuto) === */
+    /* Punto interrogativo grigio, sfondo interno nero */
     div[data-testid="stTooltipIcon"] svg,
-    svg[data-testid="icon-help"] {
+    svg[data-testid="icon-help"],
+    .css-1y0tads svg {
         stroke: #cccccc !important;
         fill: #000000 !important;
     }
 
-    /* Tooltip box */
-    div[role="tooltip"] {
-        background-color: #ffffff !important;
-        color: #000000 !important;
-        border-radius: 6px !important;
-        padding: 8px 10px !important;
-        box-shadow: 0px 0px 5px rgba(0,0,0,0.2);
-        z-index: 9999 !important;
-        opacity: 1 !important;
-    }
-
-    /* Forza colore nero anche se contenuto nested */
-    div[role="tooltip"] * {
-        color: #000000 !important;
-    }
-
-    /* Tooltip popup text */
+    /* Popup tooltip: sfondo bianco, testo nero */
+    div[role="tooltip"],
     .stTooltip, .css-1a32fsj, .css-1aumxhk {
         background-color: white !important;
         color: black !important;
@@ -78,8 +64,15 @@ st.markdown("""
         border-radius: 6px !important;
         padding: 8px 10px !important;
         box-shadow: 0px 2px 6px rgba(0,0,0,0.2);
+        z-index: 9999 !important;
+        opacity: 1 !important;
     }
-    
+
+    /* Forza colore nero anche nel contenuto interno del tooltip */
+    div[role="tooltip"] * {
+        color: black !important;
+    }
+
     /* === ICONE ANCORAGGIO === */
     a[href^="#"] svg {
         stroke: #b3b3b3 !important;
