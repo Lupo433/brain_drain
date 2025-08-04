@@ -51,6 +51,11 @@ st.markdown("""
         fill: #000000 !important;
     }
 
+    /* Tooltip content: imposta il testo in nero */
+    div[role="tooltip"] {
+        color: black !important;
+    }
+
     /* Tooltip text box */
     div[data-testid="stTooltipHoverTarget"] div[role="tooltip"] {
         color: #000 !important;
@@ -76,12 +81,13 @@ st.markdown("""
         color: inherit !important;
     }
 
-    /* Tre puntini in alto a destra */
+    /* 3 puntini visibili su sfondo chiaro */
     [data-testid="stActionButtonIcon"] svg {
-        stroke: #444 !important;
-        fill: #444 !important;
+        stroke: #000000 !important;
+        fill: #000000 !important;
         opacity: 1 !important;
     }
+
     [data-testid="stActionButtonIcon"] {
         background-color: transparent !important;
         border-radius: 6px;
