@@ -45,19 +45,6 @@ st.markdown("""
         .stButton>button:hover {
             background-color: #444444;
         }
-        /* Colore chiaro per le etichette dei campi selezione */
-        label.css-17lntkn, label.css-1q7rapa {
-            color: #e0e0e0 !important; /* grigio chiaro */
-            font-weight: 500;
-        }
-        
-        /* Tooltip (icona ?) bordo e simbolo chiari su sfondo scuro */
-        .css-1gv3huu {
-            border: 1.5px solid #888 !important; /* bordo del cerchio */
-            color: #888 !important;             /* punto interrogativo */
-            background-color: #111 !important;  /* sfondo interno */
-        }
-
     </style>
 """, unsafe_allow_html=True)
 
@@ -86,6 +73,28 @@ st.markdown("""
         /* Tooltip container NON toccato per mantenere testo leggibile */
     </style>
 """, unsafe_allow_html=True)
+
+st.markdown("""
+<style>
+/* Cambia colore delle etichette come "Select your gender" */
+div[data-testid="stMarkdownContainer"] p {
+    color: #e0e0e0 !important;
+    font-weight: 500;
+}
+
+/* Cambia il colore del cerchio e del punto interrogativo */
+svg.icon {
+    stroke: #bbbbbb !important;      /* Contorno + ? grigio chiaro */
+    fill: none !important;           /* Sfondo trasparente (resta nero) */
+}
+
+/* Se vuoi anche rendere il cerchio un po' più visibile */
+svg.icon circle {
+    stroke: #bbbbbb !important;      /* Cerchio grigio chiaro */
+}
+</style>
+""", unsafe_allow_html=True)
+
 
 
 
