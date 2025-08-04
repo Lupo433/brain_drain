@@ -261,7 +261,7 @@ if st.button("🔍 Discover best countries"):
         for idx, row in result.iterrows():
             country = row['country_of_destination']
             score = row['final_score']
-            reasons = row["reasons"].split(", ")
+            reasons = list(dict.fromkeys(row["reasons"].split(", ")))
         
             # HTML Card
             card_html = f"""
