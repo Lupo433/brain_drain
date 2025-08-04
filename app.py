@@ -128,22 +128,23 @@ svg.icon circle {
 
 st.markdown("""
 <style>
-/* Icon-only buttons - force black bg and light grey icon */
-button[kind="icon"] {
-    background-color: #111111 !important;
+/* Rende il background nero ai bottoni con icona */
+button[class^="st-emotion-cache-"] {
+    background-color: #111 !important;
     border: none !important;
     padding: 0.25rem !important;
     border-radius: 6px !important;
 }
 
-/* Icon itself */
-button[kind="icon"] svg {
-    stroke: #bbbbbb !important;   /* light gray */
-    color: #bbbbbb !important;
+/* Rende l’icona interna chiara (grigio) */
+button[class^="st-emotion-cache-"] svg {
+    color: #bbb !important;
+    stroke: #bbb !important;
+    fill: none !important;
 }
 
-/* Optional hover effect */
-button[kind="icon"]:hover {
+/* Aggiunta opzionale: cambia colore al passaggio */
+button[class^="st-emotion-cache-"]:hover {
     background-color: #222 !important;
 }
 </style>
