@@ -115,6 +115,32 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
+st.markdown("""
+<style>
+/* Icona tooltip (cerchio con ?) */
+div[data-testid="stTooltipIcon"] svg,
+svg[data-testid="icon-help"] {
+    stroke: #cccccc !important;
+    fill: #000000 !important;
+}
+
+/* Tooltip box */
+div[role="tooltip"] {
+    background-color: #ffffff !important;
+    border-radius: 6px !important;
+    padding: 8px 10px !important;
+    box-shadow: 0px 0px 5px rgba(0,0,0,0.2);
+}
+
+/* Testo del tooltip: applicato a TUTTI gli elementi dentro il tooltip */
+div[role="tooltip"], 
+div[role="tooltip"] * {
+    color: #000000 !important;
+    font-weight: 500 !important;
+    opacity: 1 !important;
+}
+</style>
+""", unsafe_allow_html=True)
 
 
 
