@@ -11,6 +11,110 @@ df = pd.read_csv("dataset_final.csv")
 
 st.set_page_config(page_title="GoWhere - Brain Drain Analyzer", layout="centered")
 
+st.markdown("""
+<style>
+    /* === BASE DARK THEME === */
+    body, .stApp {
+        background-color: #121212;
+        color: white;
+    }
+
+    h1, h2, h3, h4, h5, h6,
+    .stMarkdown, .stText, .stSubheader, .stCaption,
+    .stCheckbox > label > div, .stSlider label, .stRadio label,
+    label[data-testid="stMarkdownContainer"],
+    div[data-testid="stMarkdownContainer"] p {
+        color: white !important;
+    }
+
+    /* Dropdowns e slider */
+    .css-1v0mbdj, .css-1cpxqw2 {
+        background-color: #2e2e2e !important;
+        color: white !important;
+    }
+    .css-1cpxqw2:hover {
+        border-color: #ffffff !important;
+    }
+
+    /* Pulsanti */
+    .stButton>button {
+        color: white;
+        background-color: #333333;
+    }
+    .stButton>button:hover {
+        background-color: #444444;
+    }
+
+    /* === TOOLTIP === */
+
+    /* Icona punto interrogativo */
+    div[data-testid="stTooltipIcon"] svg,
+    svg[data-testid="icon-help"] {
+        stroke: #cccccc !important;
+        fill: #000000 !important;
+    }
+
+    /* Box tooltip */
+    div[role="tooltip"] {
+        background-color: #ffffff !important;
+        color: black !important;
+        border-radius: 6px !important;
+        padding: 8px 10px !important;
+        box-shadow: 0px 2px 6px rgba(0,0,0,0.2);
+        z-index: 9999 !important;
+        opacity: 1 !important;
+    }
+
+    /* TESTO tooltip - include qualsiasi cosa dentro */
+    div[role="tooltip"] *,
+    div[role="tooltip"] label,
+    div[role="tooltip"] span,
+    div[role="tooltip"] p {
+        color: black !important;
+        font-weight: 500 !important;
+    }
+
+    /* === ICONE ANCORAGGIO === */
+    a[href^="#"] svg {
+        stroke: #b3b3b3 !important;
+        background-color: #000 !important;
+        border-radius: 5px;
+        padding: 3px;
+        opacity: 1 !important;
+    }
+    a[href^="#"] {
+        color: inherit !important;
+    }
+
+    /* === TRE PUNTINI (menu Streamlit header) === */
+    button[data-testid="stBaseButton-headerNoPadding"] svg {
+        stroke: black !important;
+        fill: black !important;
+        opacity: 1 !important;
+    }
+    button[data-testid="stBaseButton-headerNoPadding"] {
+        background-color: transparent !important;
+        border-radius: 6px;
+    }
+
+    /* === RISULTATI (cards) === */
+    div[data-testid="stMarkdownContainer"] h3 {
+        color: white !important;
+    }
+    div[data-testid="stMarkdownContainer"] ul {
+        color: white !important;
+    }
+    div[data-testid="stMarkdownContainer"] h3 span {
+        background-color: #e8f5e9 !important;
+        color: #2e7d32 !important;
+        font-weight: bold;
+    }
+    div[data-testid="stMarkdownContainer"] > div {
+        background-color: #1e1e1e !important;
+    }
+
+</style>
+""", unsafe_allow_html=True)
 
 
 
