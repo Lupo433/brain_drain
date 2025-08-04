@@ -169,6 +169,48 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
+st.markdown("""
+    <style>
+        /* Sfondo nero per tutte le icone pulsante */
+        a[href^="#"] svg,
+        .stMarkdown svg,
+        .stTooltipIcon svg,
+        [data-testid="stHeaderActionElements"] svg {
+            background-color: #000 !important;
+            border-radius: 6px;
+            padding: 3px;
+        }
+
+        /* Colore grigio per l'icona dentro lo sfondo */
+        a[href^="#"] svg path,
+        a[href^="#"] svg line,
+        a[href^="#"] svg circle,
+        .stMarkdown svg path,
+        .stTooltipIcon svg path,
+        .stTooltipIcon svg line,
+        .stTooltipIcon svg circle {
+            stroke: #ccc !important;
+        }
+
+        /* Prevenzione hover che cambia colore */
+        a:hover svg path,
+        a:hover svg line,
+        a:hover svg circle {
+            stroke: #ccc !important;
+        }
+
+        /* Fix per i quadratini bianchi */
+        svg[class="icon"] {
+            background-color: #000 !important;
+            border-radius: 5px;
+        }
+
+        /* Rimuovi eventuale sfondo bianco da container */
+        .stTooltipIcon {
+            background-color: transparent !important;
+        }
+    </style>
+""", unsafe_allow_html=True)
 
 
 # === TITLE ===
