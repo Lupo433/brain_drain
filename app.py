@@ -47,7 +47,7 @@ st.markdown("""
     }
 
     /* === TOOLTIP (Icona + Contenuto) === */
-    /* Punto interrogativo grigio, sfondo interno nero */
+    /* Icona del punto interrogativo */
     div[data-testid="stTooltipIcon"] svg,
     svg[data-testid="icon-help"],
     .css-1y0tads svg {
@@ -55,12 +55,10 @@ st.markdown("""
         fill: #000000 !important;
     }
 
-    /* Popup tooltip: sfondo bianco, testo nero */
-    div[role="tooltip"],
-    .stTooltip, .css-1a32fsj, .css-1aumxhk {
-        background-color: white !important;
-        color: black !important;
-        font-size: 0.85rem !important;
+    /* Box tooltip */
+    div[role="tooltip"] {
+        background-color: #ffffff !important;
+        color: #000000 !important;
         border-radius: 6px !important;
         padding: 8px 10px !important;
         box-shadow: 0px 2px 6px rgba(0,0,0,0.2);
@@ -68,8 +66,8 @@ st.markdown("""
         opacity: 1 !important;
     }
 
-    /* Forza colore nero anche nel contenuto interno del tooltip */
-    div[role="tooltip"] * {
+    /* FORZA tutto il contenuto dentro tooltip a testo nero */
+    div[role="tooltip"], div[role="tooltip"] * {
         color: black !important;
     }
 
@@ -85,7 +83,7 @@ st.markdown("""
         color: inherit !important;
     }
 
-    /* === ICONA TRE PUNTINI (menu Streamlit header) === */
+    /* === TRE PUNTINI (menu header Streamlit) === */
     button[data-testid="stBaseButton-headerNoPadding"] svg {
         stroke: black !important;
         fill: black !important;
