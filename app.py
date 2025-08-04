@@ -118,13 +118,23 @@ st.markdown("""
 
 st.markdown("""
 <style>
-/* Forza il colore del testo dentro ai tooltip (nuova selezione) */
-div[data-testid="stTooltipHoverTarget"] > div > div {
-    color: black !important;
-    font-weight: 500;
+/* Tooltip: contenitore interno del testo */
+div[data-testid="stTooltipHoverTarget"] > div[role="tooltip"] > div {
+    color: black !important;         /* colore del testo */
+    font-weight: 500 !important;
+    opacity: 1 !important;           /* forza la visibilità */
+}
+
+/* Tooltip: sfondo bianco */
+div[role="tooltip"] {
+    background-color: #ffffff !important;
+    border-radius: 6px !important;
+    padding: 8px 10px !important;
+    box-shadow: 0px 0px 5px rgba(0,0,0,0.2);
 }
 </style>
 """, unsafe_allow_html=True)
+
 
 
 st.markdown("""
