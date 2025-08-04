@@ -14,10 +14,12 @@ st.set_page_config(page_title="GoWhere - Brain Drain Analyzer", layout="centered
 # === DARK THEME OVERRIDE ===
 st.markdown("""
 <style>
+    /* === BASE DARK THEME === */
     body, .stApp {
         background-color: #121212;
         color: white;
     }
+
     h1, h2, h3, h4, h5, h6,
     .stMarkdown, .stText, .stSubheader, .stCaption,
     .stCheckbox > label > div, .stSlider label, .stRadio label,
@@ -44,31 +46,30 @@ st.markdown("""
         background-color: #444444;
     }
 
-    /* Tooltip: icona con cerchio e ? */
+    /* === TOOLTIP (icona e contenuto) === */
+    /* Punto interrogativo */
     div[data-testid="stTooltipIcon"] svg,
     svg[data-testid="icon-help"] {
         stroke: #cccccc !important;
         fill: #000000 !important;
     }
 
-    /* Tooltip content: imposta il testo in nero */
+    /* Sfondo e testo del contenuto tooltip */
     div[role="tooltip"] {
-        color: black !important;
-    }
-
-    /* Tooltip text box */
-    div[data-testid="stTooltipHoverTarget"] div[role="tooltip"] {
-        color: #000 !important;
         background-color: #ffffff !important;
+        color: black !important;
+        border-radius: 6px !important;
+        padding: 8px 10px !important;
+        box-shadow: 0px 0px 5px rgba(0,0,0,0.2);
     }
 
-    /* Etichette tipo "Select your gender" */
-    div[data-testid="stMarkdownContainer"] p {
-        color: #e0e0e0 !important;
-        font-weight: 500;
+    div[role="tooltip"] * {
+        color: black !important;
+        font-weight: 500 !important;
+        opacity: 1 !important;
     }
 
-    /* Icone di ancoraggio/link accanto ai titoli */
+    /* === ICONE ANCORAGGIO === */
     a[href^="#"] svg {
         stroke: #b3b3b3 !important;
         background-color: #000 !important;
@@ -76,24 +77,23 @@ st.markdown("""
         padding: 3px;
         opacity: 1 !important;
     }
-
     a[href^="#"] {
         color: inherit !important;
     }
 
-    /* 3 puntini visibili su sfondo chiaro */
-    [data-testid="stActionButtonIcon"] svg {
-        stroke: #000000 !important;
-        fill: #000000 !important;
+    /* === ICONA TRE PUNTINI (menu Streamlit) === */
+    button[data-testid="stBaseButton-headerNoPadding"] svg {
+        stroke: black !important;
+        fill: black !important;
         opacity: 1 !important;
     }
 
-    [data-testid="stActionButtonIcon"] {
+    button[data-testid="stBaseButton-headerNoPadding"] {
         background-color: transparent !important;
         border-radius: 6px;
     }
 
-    /* Risultati - titolo e badge */
+    /* === RISULTATI (cards) === */
     div[data-testid="stMarkdownContainer"] h3 {
         color: white !important;
     }
@@ -108,43 +108,9 @@ st.markdown("""
         font-weight: bold;
     }
 
-    /* Background dei riquadri risultati */
     div[data-testid="stMarkdownContainer"] > div {
         background-color: #1e1e1e !important;
     }
-
-</style>
-""", unsafe_allow_html=True)
-
-st.markdown("""
-<style>
-/* Tooltip: contenitore interno del testo */
-div[data-testid="stTooltipHoverTarget"] > div[role="tooltip"] > div {
-    color: black !important;         /* colore del testo */
-    font-weight: 500 !important;
-    opacity: 1 !important;           /* forza la visibilità */
-}
-
-/* Tooltip: sfondo bianco */
-div[role="tooltip"] {
-    background-color: #ffffff !important;
-    border-radius: 6px !important;
-    padding: 8px 10px !important;
-    box-shadow: 0px 0px 5px rgba(0,0,0,0.2);
-}
-</style>
-""", unsafe_allow_html=True)
-
-
-
-st.markdown("""
-<style>
-/* Forza visibilità dei tre puntini (menu Streamlit) */
-button[data-testid="stBaseButton-headerNoPadding"] svg {
-    stroke: black !important;
-    fill: black !important;
-    opacity: 1 !important;
-}
 </style>
 """, unsafe_allow_html=True)
 
