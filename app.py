@@ -329,7 +329,6 @@ Each cluster groups countries with comparable performance on the selected metric
 Use this visualization to identify patterns, outliers, or similarities across countries in terms of well-being, opportunity, and quality of life.
 """)
 
-
 indices = indicators
 
 selected = st.multiselect(
@@ -351,14 +350,19 @@ else:
         else:
             X = StandardScaler().fit_transform(df_media[cols])
 
-            if len(selected) > 2:
+            # === Coordinate PCA oppure originali ===
+            if X.shape[1] > 2:
                 X_pca = PCA(n_components=2).fit_transform(X)
-                df_media["PCA1"] = X_pca[:, 0]
-                df_media["PCA2"] = X_pca[:, 1]
+                df_media["X"] = X_pca[:, 0]
+                df_media["Y"] = X_pca[:, 1]
+                x_label, y_label = "Principal Component 1", "Principal Component 2"
             else:
-                df_media["PCA1"] = X[:, 0]
-                df_media["PCA2"] = X[:, 1]
+                var1, var2 = selected[0], selected[1]
+                df_media["X"] = X[:, 0]
+                df_media["Y"] = X[:, 1]
+                x_label, y_label = var1, var2
 
+            # === Silhouette score for optimal cluster count ===
             silhouette_scores = []
             cluster_range = range(2, min(10, len(df_media)))
             for k in cluster_range:
@@ -371,7 +375,7 @@ else:
             kmeans = KMeans(n_clusters=best_k, n_init="auto", random_state=42)
             df_media["Cluster"] = kmeans.fit_predict(X)
 
-            # Cluster description
+            # === Cluster label description ===
             cluster_summary = df_media.groupby("Cluster")[cols].mean()
             cluster_labels = {}
             for cluster_id, row in cluster_summary.iterrows():
@@ -381,12 +385,12 @@ else:
                 avg = row.mean()
                 label = f"Cluster {cluster_id}"
                 if high:
-                    label += f" | High: {', '.join(high)}"
+                    label += f"  | High: {', '.join(high)}"
                 if medium:
-                    label += f" | Medium: {', '.join(medium)}"
+                    label += f"  | Medium: {', '.join(medium)}"
                 if low:
-                    label += f" | Low: {', '.join(low)}"
-                label += f" | Average: {avg:.2f}"
+                    label += f"  | Low: {', '.join(low)}"
+                label += f"  | Avg: {avg:.2f}"
                 cluster_labels[cluster_id] = label
 
             df_media["Cluster_label"] = df_media["Cluster"].map(cluster_labels)
@@ -397,33 +401,46 @@ else:
                 **{col: True for col in cols}
             }
 
+            # === Adjust size dynamically like Colab ===
+            n_clusters = df_media["Cluster_label"].nunique()
+            fig_height = 600 + (n_clusters * 25)
+            bottom_margin = 100 if n_clusters <= 5 else 80 + n_clusters * 10
+
             fig = px.scatter(
-                df_media, x="PCA1", y="PCA2",
+                df_media, x="X", y="Y",
                 color="Cluster_label",
                 text="text",
                 title="🌍 Country Cluster – Based on selected indicators",
-                labels={"PCA1": "Component 1", "PCA2": "Component 2"},
+                labels={"X": x_label, "Y": y_label},
                 hover_data=hover_data,
-                width=1000, height=600
+                width=1000, height=fig_height
             )
 
             fig.update_traces(textposition="top center", marker=dict(size=9))
 
-            x_min = df_media["PCA1"].min() - 1
-            x_max = df_media["PCA1"].max() + 1
+            x_min = df_media["X"].min() - 1
+            x_max = df_media["X"].max() + 1
             fig.update_xaxes(tick0=round(x_min), dtick=0.5, range=[x_min, x_max])
 
-            y_min = df_media["PCA2"].min() - 1
-            y_max = df_media["PCA2"].max() + 1
+            y_min = df_media["Y"].min() - 1
+            y_max = df_media["Y"].max() + 1
             fig.update_yaxes(tick0=round(y_min), dtick=0.5, range=[y_min, y_max])
 
             fig.update_layout(
                 legend_title_text="Cluster",
-                legend=dict(font=dict(size=10)),
-                margin=dict(l=50, r=50, t=60, b=50)
+                legend=dict(
+                    orientation="h",
+                    yanchor="bottom",
+                    y=-0.3,
+                    xanchor="center",
+                    x=0.5,
+                    font=dict(size=10),
+                ),
+                margin=dict(l=50, r=50, t=60, b=bottom_margin)
             )
 
             st.plotly_chart(fig, use_container_width=True)
 
     except Exception as e:
         st.error(f"❌ Error while generating cluster: {str(e)}")
+
