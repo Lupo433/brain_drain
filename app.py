@@ -182,8 +182,7 @@ if selected_ind:
     st.pyplot(fig)
 
 
-import streamlit as st
-import pandas as pd
+# === CLUSTERING ===
 import plotly.express as px
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
@@ -192,15 +191,11 @@ from sklearn.metrics import silhouette_score
 
 st.subheader("🔍 Country clusters by indicators")
 
-indici = [
-    "Education", "Jobs", "Income", "Safety", "Health", "Environment",
-    "Civic engagement", "Accessiblity to services", "Housing",
-    "Community", "Life satisfaction", "PR rating", "CL rating"
-]
+indices = indicators
 
 selected = st.multiselect(
     "Select at least two indices to group countries",
-    options=indici,
+    options=indices,
     default=["Education", "Income"]
 )
 
@@ -213,7 +208,7 @@ else:
         df_media.dropna(inplace=True)
 
         if df_media.empty:
-            st.error("⚠️ Nessun dato valido disponibile.")
+            st.error("⚠️ No valid data available.")
         else:
             X = StandardScaler().fit_transform(df_media[cols])
 
@@ -237,22 +232,22 @@ else:
             kmeans = KMeans(n_clusters=best_k, n_init="auto", random_state=42)
             df_media["Cluster"] = kmeans.fit_predict(X)
 
-            # Descrizione cluster
+            # Cluster description
             cluster_summary = df_media.groupby("Cluster")[cols].mean()
             cluster_labels = {}
             for cluster_id, row in cluster_summary.iterrows():
                 high = [col.replace("dest_", "") for col, val in row.items() if val >= 0.7]
                 medium = [col.replace("dest_", "") for col, val in row.items() if 0.4 <= val < 0.7]
                 low = [col.replace("dest_", "") for col, val in row.items() if val < 0.4]
-                media = row.mean()
+                avg = row.mean()
                 label = f"Cluster {cluster_id}"
                 if high:
-                    label += f" | Alti: {', '.join(high)}"
+                    label += f" | High: {', '.join(high)}"
                 if medium:
-                    label += f" | Medi: {', '.join(medium)}"
+                    label += f" | Medium: {', '.join(medium)}"
                 if low:
-                    label += f" | Bassi: {', '.join(low)}"
-                label += f" | Media: {media:.2f}"
+                    label += f" | Low: {', '.join(low)}"
+                label += f" | Average: {avg:.2f}"
                 cluster_labels[cluster_id] = label
 
             df_media["Cluster_label"] = df_media["Cluster"].map(cluster_labels)
@@ -268,7 +263,7 @@ else:
                 color="Cluster_label",
                 text="text",
                 title="🌍 Country Cluster – Based on selected indicators",
-                labels={"PCA1": "Componente 1", "PCA2": "Componente 2"},
+                labels={"PCA1": "Component 1", "PCA2": "Component 2"},
                 hover_data=hover_data,
                 width=1000, height=600
             )
@@ -292,4 +287,4 @@ else:
             st.plotly_chart(fig, use_container_width=True)
 
     except Exception as e:
-        st.error(f"❌ Errore durante la generazione del cluster: {str(e)}")
+        st.error(f"❌ Error while generating cluster: {str(e)}")
