@@ -50,13 +50,14 @@ st.markdown("""
 
 st.markdown("""
     <style>
-        /* Tooltip icon color: grigio chiaro ma non pienamente bianco */
+        /* Tooltip icon: bordo e ? grigi, interno nero */
         div[data-testid="stTooltipIcon"] svg {
-            stroke: #cccccc !important;
-            fill: #cccccc !important;
+            stroke: #cccccc !important;  /* colore del punto interrogativo */
+            fill: #000000 !important;    /* sfondo interno del cerchio */
         }
     </style>
 """, unsafe_allow_html=True)
+
 
 
 st.markdown("""
