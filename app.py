@@ -126,6 +126,28 @@ svg.icon circle {
 </style>
 """, unsafe_allow_html=True)
 
+st.markdown("""
+<style>
+/* Icon-only buttons - force black bg and light grey icon */
+button[kind="icon"] {
+    background-color: #111111 !important;
+    border: none !important;
+    padding: 0.25rem !important;
+    border-radius: 6px !important;
+}
+
+/* Icon itself */
+button[kind="icon"] svg {
+    stroke: #bbbbbb !important;   /* light gray */
+    color: #bbbbbb !important;
+}
+
+/* Optional hover effect */
+button[kind="icon"]:hover {
+    background-color: #222 !important;
+}
+</style>
+""", unsafe_allow_html=True)
 
 
 
