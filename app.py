@@ -48,6 +48,19 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
+st.markdown("""
+    <style>
+        /* Etichette delle checkbox e sliders in bianco */
+        label, .stSlider > div > div, .stCheckbox > label, .css-10trblm {
+            color: white !important;
+        }
+
+        /* Colore bianco per icona del tooltip */
+        .css-1c7y2kd svg, .css-1y0tads svg {
+            color: white !important;
+        }
+    </style>
+""", unsafe_allow_html=True)
 
 
 # === TITLE ===
