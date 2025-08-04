@@ -11,56 +11,39 @@ df = pd.read_csv("dataset_final.csv")
 
 st.set_page_config(page_title="GoWhere - Brain Drain Analyzer", layout="centered")
 
+# === DARK THEME OVERRIDE ===
 st.markdown("""
     <style>
-        body, .stApp {
+        body {
             background-color: #121212;
             color: white;
         }
-
-        h1, h2, h3, h4, h5, h6, p, span, div {
-            color: white !important;
+        .stApp {
+            background-color: #121212;
+            color: white;
         }
-
+        h1, h2, h3, h4, h5, h6 {
+            color: white;
+        }
         .stMarkdown, .stText, .stSubheader, .stCaption {
             color: white !important;
         }
-
-        .stCheckbox > label, label, .css-1y0tads {
+        .css-1d391kg {  /* widget label color */
             color: white !important;
         }
-
-        .stSlider > div > div > div {
+        .css-1v0mbdj, .css-1cpxqw2 {  /* dropdowns and sliders */
+            background-color: #2e2e2e !important;
             color: white !important;
         }
-
-        .stSelectbox > div > div {
-            background-color: #2e2e2e;
-            color: white;
+        .css-1cpxqw2:hover {
+            border-color: #ffffff !important;
         }
-
         .stButton>button {
-            background-color: #2e2e2e;
             color: white;
+            background-color: #333333;
         }
-
         .stButton>button:hover {
-            background-color: #3e3e3e;
-        }
-
-        /* Tooltip icon – make it light gray */
-        .css-1c7y2kd, .css-1y0tads svg {
-            color: #cccccc !important;
-        }
-
-        /* Tooltip popup text */
-        .stTooltip, .css-1a32fsj, .css-1aumxhk {
-            background-color: white !important;
-            color: black !important;
-            font-size: 0.85rem !important;
-            border-radius: 6px !important;
-            padding: 8px 10px !important;
-            box-shadow: 0px 2px 6px rgba(0,0,0,0.2);
+            background-color: #444444;
         }
     </style>
 """, unsafe_allow_html=True)
