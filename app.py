@@ -152,15 +152,19 @@ button[class^="st-emotion-cache-"]:hover {
 
 st.markdown("""
     <style>
-    /* Pulsanti link SVG (icone accanto ai titoli) */
-    a[class^="st-emotion-cache-yin1l1"] svg {
-        background-color: #0f0f0f;  /* sfondo nero */
-        border-radius: 5px;
-        padding: 3px;
+    /* Sfondo nero per i pulsanti in alto a destra */
+    [data-testid="stActionButton"] svg {
+        background-color: #0f0f0f !important;
+        border-radius: 6px;
+        padding: 5px;
     }
-    a[class^="st-emotion-cache-yin1l1"] svg path,
-    a[class^="st-emotion-cache-yin1l1"] svg line {
-        stroke: #aaa;  /* icona grigia */
+
+    /* Cambia il colore dell'icona (stroke) in grigio */
+    [data-testid="stActionButton"] svg path,
+    [data-testid="stActionButton"] svg line,
+    [data-testid="stActionButton"] svg circle {
+        stroke: #bbbbbb !important;
+        fill: #bbbbbb !important;
     }
     </style>
 """, unsafe_allow_html=True)
