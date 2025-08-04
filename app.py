@@ -58,6 +58,19 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
+st.markdown("""
+    <style>
+    label.css-17lntkn, label.css-1q7rapa {
+        color: #e0e0e0 !important;
+        font-weight: 500;
+    }
+    .css-1gv3huu {
+        border: 1.5px solid #888 !important;
+        color: #888 !important;
+        background-color: #111 !important;
+    }
+    </style>
+""", unsafe_allow_html=True)
 
 
 st.markdown("""
