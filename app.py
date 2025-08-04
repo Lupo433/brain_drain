@@ -53,21 +53,22 @@ st.markdown("""
         stroke: #cccccc !important;
         fill: #000000 !important;
     }
-
-    /* Sfondo e testo del contenuto tooltip */
+    
+    /* Contenitore tooltip */
     div[role="tooltip"] {
         background-color: #ffffff !important;
-        color: black !important;
         border-radius: 6px !important;
         padding: 8px 10px !important;
         box-shadow: 0px 0px 5px rgba(0,0,0,0.2);
     }
-
-    div[role="tooltip"] * {
-        color: black !important;
+    
+    /* Testo del tooltip */
+    div[role="tooltip"] > div {
+        color: #000000 !important;
         font-weight: 500 !important;
         opacity: 1 !important;
     }
+
 
     /* === ICONE ANCORAGGIO === */
     a[href^="#"] svg {
