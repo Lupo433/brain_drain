@@ -12,7 +12,7 @@ df = pd.read_csv("dataset_final.csv")
 st.set_page_config(page_title="GoWhere - Brain Drain Analyzer", layout="centered")
 
 # === TITLE ===
-st.title("🌍 2222 GoWhere - Brain Drain Analyzer")
+st.title("🌍 GoWhere - Brain Drain Analyzer")
 st.markdown("""
 This tool helps you find the best countries based on your personal preferences,
 comparing key factors like jobs, safety, health, and more. Answer a few questions
@@ -190,7 +190,7 @@ from sklearn.decomposition import PCA
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
 
-st.subheader("🔍 Cluster dei Paesi in base agli indicatori")
+st.subheader("🔍 Country clusters by indicators")
 
 indici = [
     "Education", "Jobs", "Income", "Safety", "Health", "Environment",
@@ -199,13 +199,13 @@ indici = [
 ]
 
 selected = st.multiselect(
-    "Seleziona almeno due indici per raggruppare i paesi",
+    "Select at least two indices to group countries",
     options=indici,
     default=["Education", "Income"]
 )
 
 if len(selected) < 2:
-    st.warning("⚠️ Seleziona almeno due indici per continuare.")
+    st.warning("⚠️ Select at least two indexes to continue.")
 else:
     try:
         cols = [f"dest_{i}" for i in selected]
@@ -267,7 +267,7 @@ else:
                 df_media, x="PCA1", y="PCA2",
                 color="Cluster_label",
                 text="text",
-                title="🌍 Cluster dei Paesi – Basato su indicatori selezionati",
+                title="🌍 Country Cluster – Based on selected indicators",
                 labels={"PCA1": "Componente 1", "PCA2": "Componente 2"},
                 hover_data=hover_data,
                 width=1000, height=600
