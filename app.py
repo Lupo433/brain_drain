@@ -11,6 +11,44 @@ df = pd.read_csv("dataset_final.csv")
 
 st.set_page_config(page_title="GoWhere - Brain Drain Analyzer", layout="centered")
 
+# === DARK THEME OVERRIDE ===
+st.markdown("""
+    <style>
+        body {
+            background-color: #121212;
+            color: white;
+        }
+        .stApp {
+            background-color: #121212;
+            color: white;
+        }
+        h1, h2, h3, h4, h5, h6 {
+            color: white;
+        }
+        .stMarkdown, .stText, .stSubheader, .stCaption {
+            color: white !important;
+        }
+        .css-1d391kg {  /* widget label color */
+            color: white !important;
+        }
+        .css-1v0mbdj, .css-1cpxqw2 {  /* dropdowns and sliders */
+            background-color: #2e2e2e !important;
+            color: white !important;
+        }
+        .css-1cpxqw2:hover {
+            border-color: #ffffff !important;
+        }
+        .stButton>button {
+            color: white;
+            background-color: #333333;
+        }
+        .stButton>button:hover {
+            background-color: #444444;
+        }
+    </style>
+""", unsafe_allow_html=True)
+
+
 # === TITLE ===
 st.title("🌍 GoWhere - Brain Drain Analyzer")
 st.markdown("""
