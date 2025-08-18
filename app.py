@@ -549,7 +549,7 @@ This platform supports personal decision-making **while also offering insights**
 """)
 
 ### ✔️ In Short:
-- Your insights help **maximize the benefits** of skilled migration by focusing on opportunities—not just destinations.
+- Your insights help **maximize the benefits** of skilled migration by focusing on opportunities-not just destinations.
 - Whether you're considering **temporary relocation**, **return plans**, or **career exploration**, this tool empowers informed decision-making.
 - For policymakers, it highlights the importance of investing in education, mobility, and digital infrastructure to **turn migration into a win‑win strategy**.
 
