@@ -560,7 +560,7 @@ st.markdown("""
 
 ### Thank You for Exploring with GoWhere 🌍
 
-We hope this app has given you confidence and clarity. Let the data guide your journey—and may your next destination be one that aligns with your goals, values, and potential.
+We hope this app has given you confidence and clarity. Let the data guide your journey - and may your next destination be one that aligns with your goals, values, and potential.
 
 If you'd like to explore more variables or update your preferences, just scroll up and try again.
 """)
