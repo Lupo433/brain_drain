@@ -175,22 +175,21 @@ indicator_help = {
 # === USER PREFERENCES ===
 st.subheader("🧭 Customize your preferences")
 
+# Mapping for all countries (origin + destination)
+country_map_df = pd.concat([
+    df[["country_of_birth", "Country_origin"]].rename(columns={"country_of_birth": "code", "Country_origin": "name"}),
+    df[["country_of_destination", "Country_dest"]].rename(columns={"country_of_destination": "code", "Country_dest": "name"})
+]).drop_duplicates().sort_values("name")
+
+country_display_map = {f"{row['code']} - {row['name']}": row["code"] for _, row in country_map_df.iterrows()}
+code_to_name = {row["code"]: row["name"] for _, row in country_map_df.iterrows()}
+
 col1, col2 = st.columns(2)
 with col1:
     sex = st.selectbox("Select your gender", ["Male", "Female"], help="Your gender may influence preferences and migration motivations.")
 with col2:
-    # Create mapping: "ITA - Italy" → "ITA"
-    acronym_to_name = df[["country_of_birth", "Country_origin"]].drop_duplicates().set_index("country_of_birth")["Country_origin"].to_dict()
-    origin_options = {f"{k} - {acronym_to_name.get(k, '')}": k for k in sorted(df["country_of_birth"].unique())}
-    
-    # Display friendly label but store only the acronym
-    origin_label = st.selectbox(
-        "Select your country of origin",
-        list(origin_options.keys()),
-        help="The country you currently live in."
-    )
-    origin = origin_options[origin_label]
-
+    origin_label = st.selectbox("Select your country of origin", list(country_display_map.keys()))
+    origin = country_display_map[origin_label]
 
 st.markdown("### ❌ What aspects of your current country do you dislike?")
 st.caption("Select things you’d like to escape or improve and assign importance (0–10).")
@@ -214,8 +213,29 @@ for i, ind in enumerate(indicators):
 
 # === RECOMMENDATION ENGINE ===
 if st.button("🔍 Discover best countries"):
+
     def recommend_countries(df, origin, sex, to_improve, desired, top_n=5):
-        df_user = df[(df["country_of_birth"] == origin) & (df["sex"] == sex)].copy()
+        origin_values = (
+            df[(df["country_of_birth"] == origin) & (df["sex"] == sex)]
+            [[f"origin_{ind}" for ind in indicators]]
+            .mean()
+        )
+
+        dest_values = (
+            df[df["sex"] == sex]
+            .groupby("country_of_destination")[[f"dest_{ind}" for ind in indicators]]
+            .mean()
+        )
+
+        rows = []
+        for dest_code in dest_values.index:
+            row = {"country_of_destination": dest_code}
+            for ind in indicators:
+                row[f"origin_{ind}"] = origin_values.get(f"origin_{ind}", np.nan)
+                row[f"dest_{ind}"] = dest_values.loc[dest_code, f"dest_{ind}"]
+            rows.append(row)
+
+        df_user = pd.DataFrame(rows).dropna()
 
         def compute_score(r):
             score = 0
@@ -223,15 +243,18 @@ if st.button("🔍 Discover best countries"):
             for ind, weight in to_improve.items():
                 delta = r[f"dest_{ind}"] - r[f"origin_{ind}"]
                 score += delta * weight
-                reasons.append(f"{ind} {'↑' if delta>0 else '↓'} ({delta:.2f})")
+                if delta > 0:
+                    reasons.append(f"{ind} ↑ (+{delta:.2f})")
             for ind, weight in desired.items():
                 val = r[f"dest_{ind}"]
                 delta = val - r[f"origin_{ind}"]
                 score += val * weight
-                reasons.append(f"{ind} {'↑' if delta>0 else '↓'} ({delta:.2f})")
-            return pd.Series({"score": score, "reasons": ", ".join(reasons)})
+                if delta > 0:
+                    reasons.append(f"{ind} ↑ (+{delta:.2f})")
+            return pd.Series({"score": score, "reasons": reasons})
 
         df_user[["score", "reasons"]] = df_user.apply(compute_score, axis=1)
+
         df_user["score_norm"] = (
             MinMaxScaler().fit_transform(df_user[["score"]])
             if df_user["score"].nunique() > 1 else 1.0
@@ -239,8 +262,8 @@ if st.button("🔍 Discover best countries"):
 
         if desired:
             profile = np.array(list(desired.values())).reshape(1, -1)
-            sim_indices = [f"dest_{k}" for k in desired.keys()]
-            sim_matrix = df_user[sim_indices].values
+            sim_cols = [f"dest_{k}" for k in desired]
+            sim_matrix = df_user[sim_cols].values
             sim = cosine_similarity(profile, sim_matrix)[0]
         else:
             sim = np.zeros(len(df_user))
@@ -248,59 +271,56 @@ if st.button("🔍 Discover best countries"):
         df_user["similarity"] = sim
         df_user["final_score"] = 0.5 * df_user["score_norm"] + 0.5 * df_user["similarity"]
 
-        top_countries = (
+        def merge_reasons(series):
+            flat = [item for sublist in series for item in sublist]
+            return sorted(set(flat))
+
+        result = (
             df_user.groupby("country_of_destination")
             .agg({
                 "final_score": "mean",
-                "reasons": lambda x: x.mode().iloc[0] if not x.mode().empty else x.iloc[0]
+                "reasons": merge_reasons
             })
             .sort_values("final_score", ascending=False)
             .reset_index()
             .head(top_n)
         )
-        return top_countries
+
+        return result
 
     result = recommend_countries(df, origin, sex, indices_to_improve, indices_desired)
 
-    # === DISPLAY TABULAR RESULTS (with word wrapping) ===
     if not result.empty:
         st.markdown("### 🏆 Recommended Countries")
-        st.markdown("""
-        Here are the countries that best match your preferences. You can review the reasoning behind the score for each destination.
-        """)
-        
-        # Mapping acronyms to full names
-        acronym_to_name_dest = df[["country_of_destination", "Country_dest"]].drop_duplicates().set_index("country_of_destination")["Country_dest"].to_dict()
+        st.markdown("Here are the countries that best match your preferences:")
 
         for idx, row in result.iterrows():
             country_acronym = row['country_of_destination']
-            country = acronym_to_name_dest.get(country_acronym, country_acronym)
+            country = code_to_name.get(country_acronym, country_acronym)
             score = row['final_score']
-            reasons = list(dict.fromkeys(row["reasons"].split(", ")))
+            reasons = row["reasons"]
         
-            # HTML Card
             card_html = f"""
             <div style="background-color:#f9f9f9; padding:20px; border-radius:10px; border:1px solid #ddd; margin-bottom:20px;">
-                <h3 style="margin-bottom:10px;">{idx+1}. <b>{country}</b> — <span style='background-color:#e8f5e9; color:#2e7d32; padding:4px 10px; border-radius:5px; font-family:monospace;'>{score:.4f}</span></h3>
+                <h3 style="margin-bottom:10px;">{idx+1}. <b>{country}</b> — 
+                <span style='background-color:#e8f5e9; color:#2e7d32; padding:4px 10px; border-radius:5px; font-family:monospace;'>{score:.4f}</span></h3>
                 <ul style="padding-left:20px; line-height:1.6;">
             """
-        
             for reason in reasons:
                 card_html += f"<li>{reason}</li>"
-        
             card_html += "</ul></div>"
-        
+
             st.markdown(card_html, unsafe_allow_html=True)
 
-    
         st.markdown("### 📊 Visualization of top scores")
-        st.markdown("This chart shows how strongly each recommended country matches your personal preferences.")
-        fig, ax = plt.subplots(figsize=(5, 3.5))
-        ax.barh(result["country_of_destination"], result["final_score"], color="teal", height=0.4)
+        fig, ax = plt.subplots(figsize=(6, 3.5))
+        bar_labels = [code_to_name.get(code, code) for code in result["country_of_destination"]]
+        ax.barh(bar_labels, result["final_score"], color="teal", height=0.4)
         ax.set_xlabel("Final combined score")
         ax.set_title("Top Recommended Countries")
         ax.invert_yaxis()
         st.pyplot(fig)
+
 
 # === COMPARE COUNTRIES ===
 st.subheader("📊 Compare two Countries")
@@ -310,29 +330,50 @@ st.markdown(
     "This can help you understand the relative strengths and weaknesses of each destination based on your priorities."
 )
 
-# Create mapping: "ITA - Italy" → "ITA"
-acronym_to_name_dest = df[["country_of_destination", "Country_dest"]].drop_duplicates().set_index("country_of_destination")["Country_dest"].to_dict()
-dest_options = {f"{k} - {acronym_to_name_dest.get(k, '')}": k for k in sorted(df["country_of_destination"].unique())}
+# --- Create unified mapping for both origin and destination countries ---
+all_countries_df = pd.concat([
+    df[["country_of_birth", "Country_origin"]].rename(columns={"country_of_birth": "code", "Country_origin": "name"}),
+    df[["country_of_destination", "Country_dest"]].rename(columns={"country_of_destination": "code", "Country_dest": "name"})
+]).drop_duplicates().sort_values("name")
 
-# Dropdown with display label, store only acronym
-p1_label = st.selectbox("Country 1", list(dest_options.keys()), key="p1")
-p2_label = st.selectbox("Country 2", list(dest_options.keys()), key="p2")
-p1 = dest_options[p1_label]
-p2 = dest_options[p2_label]
+country_display_map = {
+    f"{code} - {name}": code
+    for code, name in all_countries_df.values
+}
+
+# --- Dropdowns for country selection ---
+p1_label = st.selectbox("Country 1", list(country_display_map.keys()), key="p1")
+p2_label = st.selectbox("Country 2", list(country_display_map.keys()), key="p2")
+p1 = country_display_map[p1_label]
+p2 = country_display_map[p2_label]
+
+# --- Indicator selection ---
 selected_ind = st.multiselect("Select indicators to compare", indicators, default=["Jobs", "Education"])
 
+# --- Helper to retrieve metrics from dest_* or origin_* ---
+def get_country_values(code, selected_indicators):
+    row = df[df["country_of_destination"] == code]
+    prefix = "dest_"
+    if row.empty:
+        row = df[df["country_of_birth"] == code]
+        prefix = "origin_"
+    values = row[[f"{prefix}{i}" for i in selected_indicators]].iloc[0]
+    values.index = [i.replace(prefix, "") for i in values.index]
+    return values
+
+# --- Display chart ---
 if selected_ind:
-    avg1 = df[df["country_of_destination"] == p1][[f"dest_{i}" for i in selected_ind]].mean()
-    avg2 = df[df["country_of_destination"] == p2][[f"dest_{i}" for i in selected_ind]].mean()
+    avg1 = get_country_values(p1, selected_ind)
+    avg2 = get_country_values(p2, selected_ind)
     x = range(len(selected_ind))
     fig, ax = plt.subplots(figsize=(10, 5))
-    ax.bar([i - 0.2 for i in x], avg1.values, width=0.4, label=p1)
-    ax.bar([i + 0.2 for i in x], avg2.values, width=0.4, label=p2)
+    ax.bar([i - 0.2 for i in x], avg1.values, width=0.4, label=p1_label)
+    ax.bar([i + 0.2 for i in x], avg2.values, width=0.4, label=p2_label)
     ax.set_xticks(x)
     ax.set_xticklabels(selected_ind, rotation=45, ha="right")
+    ax.set_ylabel("Normalized Value")
     ax.legend()
     st.pyplot(fig)
-
 
 # === CLUSTERING ===
 import plotly.express as px
@@ -351,11 +392,16 @@ Each cluster groups countries with comparable performance on the selected metric
 Use this visualization to identify patterns, outliers, or similarities across countries in terms of well-being, opportunity, and quality of life.
 """)
 
-indices = indicators
+# --- Create unified mapping for both origin and destination countries ---
+all_countries_df = pd.concat([
+    df[["country_of_birth", "Country_origin"]].rename(columns={"country_of_birth": "code", "Country_origin": "name"}),
+    df[["country_of_destination", "Country_dest"]].rename(columns={"country_of_destination": "code", "Country_dest": "name"})
+]).drop_duplicates().sort_values("name")
 
+# --- Indicator selection ---
 selected = st.multiselect(
-    "Select at least two indices to group countries",
-    options=indices,
+    "Select at least two indicators to group countries",
+    options=indicators,
     default=["Education", "Income"]
 )
 
@@ -363,108 +409,122 @@ if len(selected) < 2:
     st.warning("⚠️ Select at least two indexes to continue.")
 else:
     try:
-        cols = [f"dest_{i}" for i in selected]
-        df_media = df.groupby("country_of_destination")[cols].mean().reset_index()
-        df_media.dropna(inplace=True)
+        # --- Retrieve values for each country ---
+        def get_country_row(code):
+            row = df[df["country_of_destination"] == code]
+            prefix = "dest_"
+            if row.empty:
+                row = df[df["country_of_birth"] == code]
+                prefix = "origin_"
+            values = row[[f"{prefix}{i}" for i in selected]].iloc[0]
+            values.index = selected  # for consistency in PCA & plotting
+            return values
 
-        if df_media.empty:
-            st.error("⚠️ No valid data available.")
+        data_rows = []
+        for _, row in all_countries_df.iterrows():
+            code = row["code"]
+            name = row["name"]
+            vals = get_country_row(code)
+            data_rows.append({"code": code, "name": name, **vals})
+
+        df_media = pd.DataFrame(data_rows)
+
+        # === Standardize ===
+        X = StandardScaler().fit_transform(df_media[selected])
+
+        # === PCA projection or raw axes ===
+        if X.shape[1] > 2:
+            X_pca = PCA(n_components=2).fit_transform(X)
+            df_media["X"] = X_pca[:, 0]
+            df_media["Y"] = X_pca[:, 1]
+            x_label, y_label = "Principal Component 1", "Principal Component 2"
         else:
-            X = StandardScaler().fit_transform(df_media[cols])
+            df_media["X"] = X[:, 0]
+            df_media["Y"] = X[:, 1]
+            x_label, y_label = selected[0], selected[1]
 
-            # === Coordinate PCA oppure originali ===
-            if X.shape[1] > 2:
-                X_pca = PCA(n_components=2).fit_transform(X)
-                df_media["X"] = X_pca[:, 0]
-                df_media["Y"] = X_pca[:, 1]
-                x_label, y_label = "Principal Component 1", "Principal Component 2"
-            else:
-                var1, var2 = selected[0], selected[1]
-                df_media["X"] = X[:, 0]
-                df_media["Y"] = X[:, 1]
-                x_label, y_label = var1, var2
+        # === Optimal number of clusters ===
+        silhouette_scores = []
+        cluster_range = range(2, min(10, len(df_media)))
+        for k in cluster_range:
+            km = KMeans(n_clusters=k, n_init="auto", random_state=42)
+            labels = km.fit_predict(X)
+            score = silhouette_score(X, labels)
+            silhouette_scores.append((k, score))
 
-            # === Silhouette score for optimal cluster count ===
-            silhouette_scores = []
-            cluster_range = range(2, min(10, len(df_media)))
-            for k in cluster_range:
-                km = KMeans(n_clusters=k, n_init="auto", random_state=42)
-                labels = km.fit_predict(X)
-                score = silhouette_score(X, labels)
-                silhouette_scores.append((k, score))
+        best_k = max(silhouette_scores, key=lambda x: x[1])[0]
+        kmeans = KMeans(n_clusters=best_k, n_init="auto", random_state=42)
+        df_media["Cluster"] = kmeans.fit_predict(X)
 
-            best_k = max(silhouette_scores, key=lambda x: x[1])[0]
-            kmeans = KMeans(n_clusters=best_k, n_init="auto", random_state=42)
-            df_media["Cluster"] = kmeans.fit_predict(X)
+        # === Label clusters ===
+        cluster_summary = df_media.groupby("Cluster")[selected].mean()
+        cluster_labels = {}
+        for cluster_id, row in cluster_summary.iterrows():
+            high = [col for col, val in row.items() if val >= 0.7]
+            medium = [col for col, val in row.items() if 0.4 <= val < 0.7]
+            low = [col for col, val in row.items() if val < 0.4]
+            avg = row.mean()
+            label = f"Cluster {cluster_id}"
+            if high:
+                label += f"  | High: {', '.join(high)}"
+            if medium:
+                label += f"  | Medium: {', '.join(medium)}"
+            if low:
+                label += f"  | Low: {', '.join(low)}"
+            label += f"  | Avg: {avg:.2f}"
+            cluster_labels[cluster_id] = label
 
-            # === Cluster label description ===
-            cluster_summary = df_media.groupby("Cluster")[cols].mean()
-            cluster_labels = {}
-            for cluster_id, row in cluster_summary.iterrows():
-                high = [col.replace("dest_", "") for col, val in row.items() if val >= 0.7]
-                medium = [col.replace("dest_", "") for col, val in row.items() if 0.4 <= val < 0.7]
-                low = [col.replace("dest_", "") for col, val in row.items() if val < 0.4]
-                avg = row.mean()
-                label = f"Cluster {cluster_id}"
-                if high:
-                    label += f"  | High: {', '.join(high)}"
-                if medium:
-                    label += f"  | Medium: {', '.join(medium)}"
-                if low:
-                    label += f"  | Low: {', '.join(low)}"
-                label += f"  | Avg: {avg:.2f}"
-                cluster_labels[cluster_id] = label
+        df_media["Cluster_label"] = df_media["Cluster"].map(cluster_labels)
+        df_media["text"] = df_media["code"]
 
-            df_media["Cluster_label"] = df_media["Cluster"].map(cluster_labels)
-            df_media["text"] = df_media["country_of_destination"]
+        hover_data = {
+            "name": True,
+            **{col: True for col in selected}
+        }
 
-            hover_data = {
-                "country_of_destination": True,
-                **{col: True for col in cols}
-            }
+        # === Dynamic sizing ===
+        n_clusters = df_media["Cluster_label"].nunique()
+        fig_height = 600 + (n_clusters * 25)
+        bottom_margin = 100 if n_clusters <= 5 else 80 + n_clusters * 10
 
-            # === Adjust size dynamically like Colab ===
-            n_clusters = df_media["Cluster_label"].nunique()
-            fig_height = 600 + (n_clusters * 25)
-            bottom_margin = 100 if n_clusters <= 5 else 80 + n_clusters * 10
+        fig = px.scatter(
+            df_media, x="X", y="Y",
+            color="Cluster_label",
+            text="text",
+            title="🌍 Country Cluster – Based on selected indicators",
+            labels={"X": x_label, "Y": y_label},
+            hover_data=hover_data,
+            width=1000, height=fig_height
+        )
 
-            fig = px.scatter(
-                df_media, x="X", y="Y",
-                color="Cluster_label",
-                text="text",
-                title="🌍 Country Cluster – Based on selected indicators",
-                labels={"X": x_label, "Y": y_label},
-                hover_data=hover_data,
-                width=1000, height=fig_height
-            )
+        fig.update_traces(textposition="top center", marker=dict(size=9))
 
-            fig.update_traces(textposition="top center", marker=dict(size=9))
+        x_min = df_media["X"].min() - 1
+        x_max = df_media["X"].max() + 1
+        fig.update_xaxes(tick0=round(x_min), dtick=0.5, range=[x_min, x_max])
 
-            x_min = df_media["X"].min() - 1
-            x_max = df_media["X"].max() + 1
-            fig.update_xaxes(tick0=round(x_min), dtick=0.5, range=[x_min, x_max])
+        y_min = df_media["Y"].min() - 1
+        y_max = df_media["Y"].max() + 1
+        fig.update_yaxes(tick0=round(y_min), dtick=0.5, range=[y_min, y_max])
 
-            y_min = df_media["Y"].min() - 1
-            y_max = df_media["Y"].max() + 1
-            fig.update_yaxes(tick0=round(y_min), dtick=0.5, range=[y_min, y_max])
+        fig.update_layout(
+            legend_title_text="Cluster",
+            legend=dict(
+                orientation="h",
+                yanchor="bottom",
+                y=-0.3,
+                xanchor="center",
+                x=0.5,
+                font=dict(size=10),
+            ),
+            margin=dict(l=50, r=50, t=60, b=bottom_margin)
+        )
 
-            fig.update_layout(
-                legend_title_text="Cluster",
-                legend=dict(
-                    orientation="h",
-                    yanchor="bottom",
-                    y=-0.3,
-                    xanchor="center",
-                    x=0.5,
-                    font=dict(size=10),
-                ),
-                margin=dict(l=50, r=50, t=60, b=bottom_margin)
-            )
-
-            st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, use_container_width=True)
 
     except Exception as e:
         st.error(f"❌ Error while generating cluster: {str(e)}")
+
 
 # === CONCLUSIONE FINALE ===
 st.markdown("## 🧭 Final Thoughts – Beyond the Data")
