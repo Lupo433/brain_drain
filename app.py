@@ -556,8 +556,6 @@ st.markdown("""
 - For policymakers, it highlights the importance of investing in education, mobility, and digital infrastructure to **turn brain drain into brain gain**.
 """)
 
----
-
 st.markdown("""
 ### 💠 Thank You for Exploring with GoWhere 🌍
 
