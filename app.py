@@ -540,7 +540,7 @@ While this tool helps individuals explore better opportunities abroad, it's impo
 
 Research shows that **brain drain** isn't always a net loss for origin countries. With the right policies, it can actually fuel a **brain gain** effect:
 
-- 🎓 Countries with **flexible education and training systems** can adapt to talent outflows by upskilling their population—triggering a cycle of innovation and resilience.
+- 🎓 Countries with **flexible education and training systems** can adapt to talent outflows by upskilling their population-triggering a cycle of innovation and resilience.
 - 🌐 **Diaspora networks**, return migration, and remittances can boost entrepreneurship, knowledge exchange, and long-term development at home.
 
 This platform supports personal decision-making **while also offering insights** that policymakers could use to anticipate or manage skilled migration trends.
