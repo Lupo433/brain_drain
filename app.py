@@ -534,18 +534,19 @@ You've taken a deep dive into the factors that matter—like **Education**, **He
 With visual clustering and score breakdowns, this app helps illuminate not just **where** but **why** some countries match your priorities better than others.
 """)
 
-st.markdown("""
-#### But let's zoom out and reflect on the bigger picture: *brain drain vs. brain gain*
+st.markdown("### 🌍 Brain Drain or Brain Gain?")
+st.info("""
+While this tool helps individuals explore better opportunities abroad, it's important to reflect on the broader implications of skilled migration.
 
-Research increasingly shows that while skilled migration may seem like a loss for origin countries, it often leads to **net gains** when the right systems are in place:
-- 🧠 Countries with **flexible education & training systems** can adapt to talent outflows by upskilling more citizens—triggering a broader **brain gain** effect.
-- 🌍 **Diaspora networks**, return migration, and remittances fuel entrepreneurship, knowledge exchange, and trade, boosting development at home.
+Research shows that **brain drain** isn't always a net loss for origin countries. With the right policies, it can actually fuel a **brain gain** effect:
 
-> Source: [Yale EGC – Brain Drain or Brain Gain?](https://egc.yale.edu/research/brain-drain-or-brain-gain-new-research-identifies-more-nuanced-story-about-skilled-migration?)
+- 🎓 Countries with **flexible education and training systems** can adapt to talent outflows by upskilling their population—triggering a cycle of innovation and resilience.
+- 🌐 **Diaspora networks**, return migration, and remittances can boost entrepreneurship, knowledge exchange, and long-term development at home.
+
+This platform supports personal decision-making **while also offering insights** that policymakers could use to anticipate or manage skilled migration trends.
+
+🔗 [Yale EGC – Brain Drain or Brain Gain?](https://egc.yale.edu/brain-drain-or-brain-gain)
 """)
-
-st.markdown("""
----
 
 ### ✔️ In Short:
 - Your insights help **maximize the benefits** of skilled migration by focusing on opportunities—not just destinations.
