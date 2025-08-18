@@ -548,10 +548,13 @@ This platform supports personal decision-making **while also offering insights**
 🔗 [Yale EGC – Brain Drain or Brain Gain?](https://egc.yale.edu/brain-drain-or-brain-gain)
 """)
 
-### ✔️ In Short:
-- Your insights help **maximize the benefits** of skilled migration by focusing on opportunities-not just destinations.
-- Whether you're considering **temporary relocation**, **return plans**, or **career exploration**, this tool empowers informed decision-making.
-- For policymakers, it highlights the importance of investing in education, mobility, and digital infrastructure to **turn migration into a win‑win strategy**.
+st.markdown("### ✔️ In Short:")
+
+st.markdown("""
+- Your insights help **maximize the benefits** of skilled migration by focusing on opportunities—not just destinations.  
+- Whether you're considering **temporary relocation**, **return plans**, or **career exploration**, this tool empowers informed choices.  
+- For policymakers, it highlights the importance of investing in education, mobility, and digital infrastructure to **turn brain drain into brain gain**.
+""")
 
 ---
 
