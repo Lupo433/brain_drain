@@ -551,8 +551,10 @@ This platform supports personal decision-making **while also offering insights**
 st.markdown("### ✔️ In Short:")
 
 st.markdown("""
-- Your insights help **maximize the benefits** of skilled migration by focusing on opportunities—not just destinations.  
-- Whether you're considering **temporary relocation**, **return plans**, or **career exploration**, this tool empowers informed choices.  
+To sum up the broader message and practical impact of this tool, here are the key takeaways:
+
+- Your insights help **maximize the benefits** of skilled migration by focusing on opportunities—not just destinations.
+- Whether you're considering **temporary relocation**, **return plans**, or **career exploration**, this tool empowers informed choices.
 - For policymakers, it highlights the importance of investing in education, mobility, and digital infrastructure to **turn brain drain into brain gain**.
 """)
 
