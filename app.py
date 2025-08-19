@@ -243,13 +243,13 @@ if st.button("🔍 Discover best countries"):
             for ind, weight in to_improve.items():
                 delta = r[f"dest_{ind}"] - r[f"origin_{ind}"]
                 score += delta * weight
-                if delta > 0.001:
+                if delta >= 0.01:
                     reasons.append(f"{ind} ↑ (+{delta:.2f})")
             for ind, weight in desired.items():
                 val = r[f"dest_{ind}"]
                 delta = val - r[f"origin_{ind}"]
                 score += val * weight
-                if delta > 0.001:
+                if delta >= 0.01:
                     reasons.append(f"{ind} ↑ (+{delta:.2f})")
             return pd.Series({"score": score, "reasons": reasons})
 
