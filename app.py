@@ -152,7 +152,7 @@ to get personalized recommendations and visualize the best destinations.
 # === INDICATORS ===
 indicators = [
     "Education", "Jobs", "Income", "Safety", "Health", "Environment",
-    "Civic engagement", "Accessiblity to services", "Housing",
+    "Civic engagement", "Accessibility to services", "Housing",
     "Community", "Life satisfaction", "PR rating", "CL rating"
 ]
 
@@ -164,7 +164,7 @@ indicator_help = {
     "Health": "Healthcare system and services",
     "Environment": "Air quality, pollution, green areas",
     "Civic engagement": "Citizen participation and democracy",
-    "Accessiblity to services": "Access to basic services like transport and internet",
+    "Accessibility to services": "Access to basic services like transport and internet",
     "Housing": "Availability and affordability of housing",
     "Community": "Social connections and trust",
     "Life satisfaction": "General well-being and happiness",
