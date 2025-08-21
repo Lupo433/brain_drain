@@ -222,17 +222,29 @@ if st.button("🔍 Discover best countries"):
         )
 
         dest_values = (
-            df[df["sex"] == sex]
+            df[(df["sex"] == sex)]
             .groupby("country_of_destination")[[f"dest_{ind}" for ind in indicators]]
             .mean()
+            .copy()
         )
 
+
+        flows = (
+            df[(df["sex"] == sex) & (df["country_of_birth"] == origin)]
+            .groupby("country_of_destination")["number"]
+            .sum()
+        )
+        flows = flows.reindex(dest_values.index).fillna(0.0)
+        flows = np.log1p(flows)  # log per stabilizzare
+
+        
         rows = []
         for dest_code in dest_values.index:
             row = {"country_of_destination": dest_code}
             for ind in indicators:
                 row[f"origin_{ind}"] = origin_values.get(f"origin_{ind}", np.nan)
                 row[f"dest_{ind}"] = dest_values.loc[dest_code, f"dest_{ind}"]
+                row["number"] = flows.get(dest_code, 0.0)
             rows.append(row)
 
         df_user = pd.DataFrame(rows).dropna()
@@ -268,8 +280,19 @@ if st.button("🔍 Discover best countries"):
         else:
             sim = np.zeros(len(df_user))
 
+        df_user["number_norm"] = (
+            MinMaxScaler().fit_transform(df_user[["number"]])
+            if df_user["number"].nunique() > 1 else 1.0
+        )
+
+
         df_user["similarity"] = sim
-        df_user["final_score"] = 0.5 * df_user["score_norm"] + 0.5 * df_user["similarity"]
+        df_user["final_score"] = (
+            0.4 * df_user["score_norm"] +
+            0.4 * df_user["similarity"] +
+            0.2 * df_user["number_norm"]
+        )
+
 
         def merge_reasons(series):
             flat = [item for sublist in series for item in sublist]
