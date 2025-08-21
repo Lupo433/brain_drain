@@ -188,7 +188,7 @@ col1, col2 = st.columns(2)
 with col1:
     sex = st.selectbox("Select your gender", ["Male", "Female"], help="Your gender may influence preferences and migration motivations.")
 with col2:
-    origin_label = st.selectbox("Select your country of origin", list(country_display_map.keys()))
+    origin_label = st.selectbox("Select your country of origin", list(country_display_map.keys()), help="This is the country you currently live in or want to compare against.")
     origin = country_display_map[origin_label]
 
 st.markdown("### ❌ What aspects of your current country do you dislike?")
